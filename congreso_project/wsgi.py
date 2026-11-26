@@ -26,13 +26,7 @@ if os.environ.get("VERCEL"):
             )
         call_command("cargar_participantes_iniciales", verbosity=0)
         from acreditacion.utils import sincronizar_desde_google_sheet
-        from acreditacion.models import ConfiguracionEvento
         sincronizar_desde_google_sheet(force=True)
-        # TEMPORAL PARA PRUEBAS DE ESCÁNER (se restaurará al terminar pruebas)
-        cfg = ConfiguracionEvento.obtener()
-        cfg.modo_prueba_activo = True
-        cfg.turno_simulado = ConfiguracionEvento.TURNO_MANANA
-        cfg.save()
 
 # Vercel Python Runtime busca el objeto WSGI/ASGI llamado `app`
 app = application

@@ -663,26 +663,6 @@ def exportar_excel_view(request):
 
 
 @login_required
-@require_POST
-def api_cambiar_turno_prueba_rapido(request):
-    """Cambio rápido temporal de turno (Mañana / Tarde) durante pruebas de escáner."""
-    data = _parse_json_body(request)
-    if data is None:
-        return JsonResponse({"ok": False, "error": "Solicitud inválida."}, status=400)
-    turno = (data.get("turno") or ConfiguracionEvento.TURNO_MANANA).strip().upper()
-    if turno not in (ConfiguracionEvento.TURNO_MANANA, ConfiguracionEvento.TURNO_TARDE):
-        return JsonResponse({"ok": False, "error": "Turno inválido."}, status=400)
-    with transaction.atomic():
-        cfg = ConfiguracionEvento.obtener()
-        cfg.modo_prueba_activo = True
-        cfg.turno_simulado = turno
-        cfg.actualizado_por = request.user
-        cfg.save()
-    bloque = obtener_bloque_horario_actual()
-    return JsonResponse({"ok": True, "bloque": bloque["bloque"], "etiqueta": bloque["etiqueta"]})
-
-
-@login_required
 @require_GET
 def escaner_view(request):
     """Vista optimizada para celulares del staff en puerta con escáner html5-qrcode."""

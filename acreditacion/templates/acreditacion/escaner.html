@@ -23,24 +23,6 @@
         </div>
     </div>
 
-    <!-- Barra Temporal de Pruebas (Mañana / Tarde) -->
-    <div class="mb-5 p-4 rounded-2xl bg-amber-50 border-2 border-amber-300 shadow-sm">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-                <div class="text-xs font-extrabold uppercase tracking-wider text-amber-900">Modo Prueba Temporal Activo</div>
-                <p class="text-xs text-amber-800 mt-0.5">Elige el turno que deseas probar con el QR (se restaurará al horario real cuando indiques).</p>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
-                <button type="button" data-turno="MANANA" class="btn-turno-prueba px-3.5 py-2 rounded-xl text-xs font-bold transition {% if bloque.bloque == 'MANANA' %}bg-navy-900 text-amber-300{% else %}bg-white border border-amber-300 text-amber-900 hover:bg-amber-100{% endif %}">
-                    Probar Mañana (1/2)
-                </button>
-                <button type="button" data-turno="TARDE" class="btn-turno-prueba px-3.5 py-2 rounded-xl text-xs font-bold transition {% if bloque.bloque == 'TARDE' %}bg-navy-900 text-amber-300{% else %}bg-white border border-amber-300 text-amber-900 hover:bg-amber-100{% endif %}">
-                    Probar Tarde (2/2)
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- Banner de Resultado del Escaneo (Verde / Rojo / Ámbar) -->
     <div id="bannerResultado" class="hidden mb-5 rounded-2xl p-5 border-2 shadow-md fade-in">
         <div class="flex items-start gap-3">
@@ -275,35 +257,6 @@
     }
 
     btnToggle.addEventListener('click', toggleCamara);
-
-    document.querySelectorAll('.btn-turno-prueba').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const turno = btn.dataset.turno;
-            try {
-                const res = await fetch("{% url 'api_cambiar_turno_prueba_rapido' %}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCsrfToken(),
-                    },
-                    body: JSON.stringify({ turno }),
-                });
-                const data = await res.json();
-                if (res.ok && data.ok) {
-                    document.getElementById('scannerBloqueBadge').textContent = data.etiqueta;
-                    document.querySelectorAll('.btn-turno-prueba').forEach(b => {
-                        if (b.dataset.turno === turno) {
-                            b.className = 'btn-turno-prueba px-3.5 py-2 rounded-xl text-xs font-bold transition bg-navy-900 text-amber-300';
-                        } else {
-                            b.className = 'btn-turno-prueba px-3.5 py-2 rounded-xl text-xs font-bold transition bg-white border border-amber-300 text-amber-900 hover:bg-amber-100';
-                        }
-                    });
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        });
-    });
 
     document.getElementById('formTokenManual').addEventListener('submit', (e) => {
         e.preventDefault();
