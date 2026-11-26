@@ -124,6 +124,30 @@
             </div>
         </div>
     </section>
+
+    <!-- Sección informativa: Faltan cancelar (no habilitados aún en el congreso) -->
+    <section id="seccionFaltanCancelar" class="hidden mt-6 bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
+        <div class="px-5 py-3.5 bg-amber-50/80 border-b border-amber-200 flex items-center justify-between">
+            <h2 class="text-sm font-bold text-amber-950">
+                Faltan cancelar (<span id="countFaltanCancelar">0</span>)
+            </h2>
+            <span class="text-xs text-amber-800">No considerados ni habilitados para QR hasta que cancelen</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-amber-100 text-xs">
+                <thead class="bg-amber-50/40 uppercase text-amber-900 font-semibold">
+                    <tr>
+                        <th class="px-4 py-2.5 text-center w-12">N.º</th>
+                        <th class="px-4 py-2.5 text-left">Nombres y Apellidos</th>
+                        <th class="px-4 py-2.5 text-left">DNI</th>
+                        <th class="px-4 py-2.5 text-left">Código</th>
+                        <th class="px-4 py-2.5 text-left">Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaFaltanCancelar" class="divide-y divide-slate-100 bg-white"></tbody>
+            </table>
+        </div>
+    </section>
 </div>
 
 <!-- Modal: Ver / Descargar QR de Participante -->
@@ -205,9 +229,33 @@
             document.getElementById('btnPaginaSiguiente').disabled = !pg.has_next;
 
             renderTabla(data.participantes);
+            renderFaltanCancelar(data.faltan_cancelar || []);
         } catch (err) {
             console.error(err);
         }
+    }
+
+    function renderFaltanCancelar(lista) {
+        const sec = document.getElementById('seccionFaltanCancelar');
+        const tbody = document.getElementById('tablaFaltanCancelar');
+        const cnt = document.getElementById('countFaltanCancelar');
+        if (!lista.length) {
+            sec.classList.add('hidden');
+            return;
+        }
+        sec.classList.remove('hidden');
+        cnt.textContent = lista.length;
+        tbody.innerHTML = lista.map((item, idx) => `
+            <tr class="hover:bg-amber-50/40">
+                <td class="px-4 py-2.5 text-center font-mono font-bold text-slate-500">${idx + 1}</td>
+                <td class="px-4 py-2.5 font-semibold text-navy-900">${escapeHtml(item.apellidos_nombres)}</td>
+                <td class="px-4 py-2.5 font-mono text-slate-700">${escapeHtml(item.dni)}</td>
+                <td class="px-4 py-2.5 text-slate-600">${escapeHtml(item.codigo_alumno)}</td>
+                <td class="px-4 py-2.5">
+                    <span class="px-2 py-0.5 rounded-full font-semibold bg-amber-100 text-amber-800">${escapeHtml(item.observacion)}</span>
+                </td>
+            </tr>
+        `).join('');
     }
 
     function renderTabla(lista) {

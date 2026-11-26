@@ -33,6 +33,12 @@ from .models import ConfiguracionEvento, LogAsistencia, PadronMatriculado, Parti
 
 QR_TOKEN_PREFIX = "CUNV1"
 _LAST_SHEET_SYNC_TS = 0.0
+_LAST_FALTAN_CANCELAR: list[dict] = []
+
+
+def obtener_faltan_cancelar() -> list[dict]:
+    """Retorna la última lista (solo lectura) de personas marcadas como 'falta cancelar/pagar' en el Sheet."""
+    return list(_LAST_FALTAN_CANCELAR)
 
 
 def _qr_signing_key() -> bytes:
@@ -641,9 +647,10 @@ def sincronizar_desde_google_sheet(force: bool = False) -> dict:
     """
     Lee en modo ESTRICTAMENTE SOLO LECTURA (HTTP GET CSV export) el Google Sheet configurado
     y agrega automáticamente nuevos participantes (excluyendo INVITADO EXTERNO, sin monto ni
-    método de pago). Nunca escribe ni modifica el Google Sheet.
+    método de pago, y excluyendo a quienes tienen observación 'falta cancelar/pagar' hasta que cancelen).
+    Nunca escribe ni modifica el Google Sheet.
     """
-    global _LAST_SHEET_SYNC_TS
+    global _LAST_SHEET_SYNC_TS, _LAST_FALTAN_CANCELAR
 
     url = getattr(settings, "GOOGLE_SHEET_CSV_URL", "")
     if not url:
@@ -652,7 +659,13 @@ def sincronizar_desde_google_sheet(force: bool = False) -> dict:
     intervalo = getattr(settings, "GOOGLE_SHEET_SYNC_INTERVAL", 30)
     ahora_ts = time_mod.monotonic()
     if not force and _LAST_SHEET_SYNC_TS and (ahora_ts - _LAST_SHEET_SYNC_TS) < intervalo:
-        return {"ok": True, "skipped": True, "creados": 0, "actualizados": 0}
+        return {
+            "ok": True,
+            "skipped": True,
+            "creados": 0,
+            "actualizados": 0,
+            "faltan_cancelar": list(_LAST_FALTAN_CANCELAR),
+        }
 
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "CongresoAcreditacion/1.0"})
@@ -692,6 +705,8 @@ def sincronizar_desde_google_sheet(force: bool = False) -> dict:
     actualizados = 0
     excluidos_externos = 0
     omitidos_dni = 0
+    faltan_cancelar = []
+    dnis_faltan_cancelar = set()
     ahora_dt = timezone.now()
 
     with transaction.atomic():
@@ -718,6 +733,37 @@ def sincronizar_desde_google_sheet(force: bool = False) -> dict:
 
             if "INVITADO EXTERNO" in codigo:
                 excluidos_externos += 1
+                continue
+
+            # Detectar si tiene observación de "falta cancelar" / "falta pagar" / "pendiente"
+            obs_text = " ".join(
+                c.strip() for c in row[max(idx_dni, idx_nombre, idx_codigo or 0) + 1 :] if c and c.strip()
+            )
+            obs_lower = obs_text.lower()
+            falta_pago = any(
+                kw in obs_lower for kw in ("falta cancelar", "falta pagar", "falta", "debe", "pendiente")
+            )
+
+            if falta_pago:
+                faltan_cancelar.append(
+                    {
+                        "apellidos_nombres": nombre.upper(),
+                        "dni": dni or "—",
+                        "codigo_alumno": codigo or "—",
+                        "observacion": (
+                            next(
+                                (
+                                    c.strip()
+                                    for c in row[max(idx_dni, idx_nombre, idx_codigo or 0) + 1 :]
+                                    if c and any(k in c.lower() for k in ("falta", "debe", "pendiente"))
+                                ),
+                                "Falta cancelar",
+                            )
+                        ),
+                    }
+                )
+                if re.fullmatch(r"\d{8}", dni):
+                    dnis_faltan_cancelar.add(dni)
                 continue
 
             if not re.fullmatch(r"\d{8}", dni):
@@ -760,6 +806,19 @@ def sincronizar_desde_google_sheet(force: bool = False) -> dict:
                 )
                 creados += 1
 
+        # Si alguno marcado como "falta cancelar" estaba activo previamente, desactivarlo hasta que cancele
+        if dnis_faltan_cancelar:
+            Participante.objects.filter(
+                dni__in=dnis_faltan_cancelar,
+                asistencia_manana=False,
+                asistencia_tarde=False,
+            ).exclude(estado_pago=Participante.ESTADO_ANULADO).update(
+                estado_pago=Participante.ESTADO_ANULADO,
+                qr_token=None,
+                qr_uuid=None,
+            )
+
+    _LAST_FALTAN_CANCELAR = faltan_cancelar
     _LAST_SHEET_SYNC_TS = time_mod.monotonic()
     return {
         "ok": True,
@@ -768,4 +827,5 @@ def sincronizar_desde_google_sheet(force: bool = False) -> dict:
         "actualizados": actualizados,
         "excluidos_externos": excluidos_externos,
         "omitidos_dni": omitidos_dni,
+        "faltan_cancelar": faltan_cancelar,
     }

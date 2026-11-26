@@ -366,12 +366,6 @@
     "qr_uuid": "a936bd0c-2393-4dd6-ae94-630d360f3d86"
   },
   {
-    "apellidos_nombres": "CUEVA SANTA MARÍA LEITO",
-    "dni": "75059179",
-    "codigo_alumno": "2022110544",
-    "qr_uuid": "51d85412-bb2f-47ec-a6dc-fcddc60af2e6"
-  },
-  {
     "apellidos_nombres": "HARI VARGAS OSCATEGUI",
     "dni": "60460828",
     "codigo_alumno": "2024110762",
@@ -682,12 +676,6 @@
     "dni": "73211659",
     "codigo_alumno": "2018112189",
     "qr_uuid": "5aaf7fdf-3981-4366-82b1-b74399562a7d"
-  },
-  {
-    "apellidos_nombres": "DIACK KENNEDY VALDIZAN ARCE",
-    "dni": "70249707",
-    "codigo_alumno": "2021210347",
-    "qr_uuid": "ce08a1ff-78d3-4b8c-a747-6f934cc763cb"
   },
   {
     "apellidos_nombres": "ALEJANDRO ADRIANZEN MANUEL ALEJANDRO",

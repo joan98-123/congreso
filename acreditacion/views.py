@@ -31,6 +31,7 @@ from .utils import (
     generar_token_qr,
     importar_padron_desde_archivo,
     obtener_bloque_horario_actual,
+    obtener_faltan_cancelar,
     sincronizar_desde_google_sheet,
     verificar_firma_token_qr,
 )
@@ -413,6 +414,7 @@ def api_dashboard_data(request):
                 "start_index": start_index,
                 "end_index": page_obj.end_index() if paginator.count > 0 else 0,
             },
+            "faltan_cancelar": obtener_faltan_cancelar(),
             "participantes": [
                 {
                     "numero": start_index + idx,
