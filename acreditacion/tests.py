@@ -273,3 +273,38 @@ class CongresoSistemaTests(TestCase):
             wb.sheetnames,
             ["Resumen del Congreso", "Consolidado y Certificación", "Auditoría de Escaneos"],
         )
+
+    def test_paginacion_dashboard_y_numeracion_participantes(self):
+        # Crear 12 participantes activos para probar paginación de 10 por página
+        for i in range(1, 13):
+            Participante.objects.create(
+                dni=f"710000{i:02d}",
+                codigo_alumno=f"2024{i:04d}",
+                apellidos_nombres=f"ALUMNO PRUEBA {i:02d}",
+                estado_pago=Participante.ESTADO_PAGADO,
+            )
+
+        self._login_admin()
+        r1 = self.client.get(reverse("api_dashboard_data") + "?page=1&page_size=10")
+        self.assertEqual(r1.status_code, 200)
+        d1 = r1.json()
+        self.assertEqual(d1["paginacion"]["total_filtrado"], 12)
+        self.assertEqual(d1["paginacion"]["num_pages"], 2)
+        self.assertEqual(len(d1["participantes"]), 10)
+        self.assertEqual(d1["participantes"][0]["numero"], 1)
+        self.assertEqual(d1["participantes"][9]["numero"], 10)
+        self.assertNotIn("total_recaudado", d1["kpis"])
+        self.assertNotIn("pendientes_pago", d1["kpis"])
+
+        r2 = self.client.get(reverse("api_dashboard_data") + "?page=2&page_size=10")
+        d2 = r2.json()
+        self.assertEqual(len(d2["participantes"]), 2)
+        self.assertEqual(d2["participantes"][0]["numero"], 11)
+        self.assertEqual(d2["participantes"][1]["numero"], 12)
+
+        # Vista pública solo muestra consulta y descarga de QR
+        r_pub = self.client.get(reverse("registro_pasos"))
+        self.assertEqual(r_pub.status_code, 200)
+        self.assertContains(r_pub, "Consultar y Descargar mi Pase QR")
+        self.assertNotContains(r_pub, "Continuar a Verificación de Pago")
+

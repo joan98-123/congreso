@@ -11,6 +11,7 @@ from django.conf import settings
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
+from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
 from django.db.models import Q, Sum
 from django.http import Http404, HttpResponse, JsonResponse
@@ -327,22 +328,30 @@ def dashboard_view(request):
 @login_required
 @require_GET
 def api_dashboard_data(request):
-    """API en vivo para auto-refresco cada 5 segundos del dashboard y cola de pagos."""
+    """API en vivo para auto-refresco cada 5 segundos del dashboard con paginación."""
     q = (request.GET.get("q") or "").strip()
     filtro = (request.GET.get("estado") or "TODOS").strip().upper()
 
+    try:
+        page_num = max(1, int(request.GET.get("page", 1)))
+    except ValueError:
+        page_num = 1
+
+    try:
+        page_size = int(request.GET.get("page_size", 25))
+        if page_size not in (10, 25, 50, 100):
+            page_size = 25
+    except ValueError:
+        page_size = 25
+
     activos = Participante.objects.exclude(estado_pago=Participante.ESTADO_ANULADO)
     pagados = activos.filter(estado_pago=Participante.ESTADO_PAGADO)
-    pendientes_qs = activos.filter(estado_pago=Participante.ESTADO_PENDIENTE).order_by("-fecha_registro")
 
-    recaudado = pagados.aggregate(total=Sum("monto_pagar"))["total"] or Decimal("0.00")
-    mat_pagados = pagados.filter(es_matriculado=True).count()
-    ext_pagados = pagados.filter(es_matriculado=False).count()
     asist_manana = pagados.filter(asistencia_manana=True).count()
     asist_tarde = pagados.filter(asistencia_tarde=True).count()
     asist_completa = pagados.filter(asistencia_manana=True, asistencia_tarde=True).count()
 
-    tabla_qs = activos.select_related("validado_por").order_by("-fecha_registro")
+    tabla_qs = activos.order_by("apellidos_nombres", "id")
     if q:
         tabla_qs = tabla_qs.filter(
             Q(dni__icontains=q)
@@ -350,21 +359,19 @@ def api_dashboard_data(request):
             | Q(codigo_alumno__icontains=q)
         )
 
-    if filtro == "PENDIENTE_PAGO":
-        tabla_qs = tabla_qs.filter(estado_pago=Participante.ESTADO_PENDIENTE)
-    elif filtro == "PAGADO":
-        tabla_qs = tabla_qs.filter(estado_pago=Participante.ESTADO_PAGADO)
-    elif filtro == "COMPLETA":
-        tabla_qs = tabla_qs.filter(
-            estado_pago=Participante.ESTADO_PAGADO,
-            asistencia_manana=True,
-            asistencia_tarde=True,
-        )
+    if filtro == "COMPLETA":
+        tabla_qs = tabla_qs.filter(asistencia_manana=True, asistencia_tarde=True)
     elif filtro == "PARCIAL":
-        tabla_qs = tabla_qs.filter(estado_pago=Participante.ESTADO_PAGADO).filter(
+        tabla_qs = tabla_qs.filter(
             Q(asistencia_manana=True, asistencia_tarde=False)
             | Q(asistencia_manana=False, asistencia_tarde=True)
         )
+    elif filtro == "AUSENTE":
+        tabla_qs = tabla_qs.filter(asistencia_manana=False, asistencia_tarde=False)
+
+    paginator = Paginator(tabla_qs, page_size)
+    page_obj = paginator.get_page(page_num)
+    start_index = page_obj.start_index() if paginator.count > 0 else 0
 
     bloque_info = obtener_bloque_horario_actual()
 
@@ -372,15 +379,10 @@ def api_dashboard_data(request):
         {
             "ok": True,
             "kpis": {
-                "total_recaudado": f"{recaudado:.2f}",
-                "matriculados_pagados": mat_pagados,
-                "externos_pagados": ext_pagados,
-                "total_pagados": mat_pagados + ext_pagados,
+                "total_participantes": activos.count(),
                 "asist_manana": asist_manana,
                 "asist_tarde": asist_tarde,
                 "asist_completa": asist_completa,
-                "pendientes_pago": pendientes_qs.count(),
-                "total_padron": PadronMatriculado.objects.count(),
             },
             "bloque_actual": {
                 "bloque": bloque_info["bloque"],
@@ -389,40 +391,31 @@ def api_dashboard_data(request):
                 "fecha_servidor": bloque_info["hora_servidor"].strftime("%d/%m/%Y"),
                 "modo_prueba": bloque_info["modo_prueba"],
             },
-            "pendientes": [
-                {
-                    "id": p.id,
-                    "dni": p.dni,
-                    "codigo_alumno": p.codigo_alumno or "EXTERNO",
-                    "apellidos_nombres": p.apellidos_nombres,
-                    "es_matriculado": p.es_matriculado,
-                    "monto_pagar": f"{p.monto_pagar:.2f}",
-                    "fecha_registro": _formatear_hora(p.fecha_registro),
-                }
-                for p in pendientes_qs[:100]
-            ],
+            "paginacion": {
+                "page": page_obj.number,
+                "num_pages": paginator.num_pages,
+                "total_filtrado": paginator.count,
+                "page_size": page_size,
+                "has_previous": page_obj.has_previous(),
+                "has_next": page_obj.has_next(),
+                "start_index": start_index,
+                "end_index": page_obj.end_index() if paginator.count > 0 else 0,
+            },
             "participantes": [
                 {
+                    "numero": start_index + idx,
                     "id": p.id,
                     "dni": p.dni,
                     "codigo_alumno": p.codigo_alumno or "EXTERNO",
                     "apellidos_nombres": p.apellidos_nombres,
-                    "es_matriculado": p.es_matriculado,
-                    "monto_pagar": f"{p.monto_pagar:.2f}",
-                    "estado_pago": p.estado_pago,
-                    "validado_por": p.validado_por.username if p.validado_por else None,
                     "asistencia_manana": p.asistencia_manana,
                     "hora_manana": _formatear_hora(p.hora_manana),
                     "asistencia_tarde": p.asistencia_tarde,
                     "hora_tarde": _formatear_hora(p.hora_tarde),
-                    "estado_certificacion": (
-                        p.estado_certificacion
-                        if p.estado_pago == Participante.ESTADO_PAGADO
-                        else "Pendiente"
-                    ),
+                    "estado_certificacion": p.estado_certificacion,
                     "tiene_qr": bool(p.qr_token and p.estado_pago == Participante.ESTADO_PAGADO),
                 }
-                for p in tabla_qs[:250]
+                for idx, p in enumerate(page_obj.object_list)
             ],
         }
     )

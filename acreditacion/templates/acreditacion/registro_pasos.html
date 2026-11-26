@@ -1,586 +1,209 @@
 {% extends "acreditacion/base.html" %}
-{% block title %}Inscripción en Puerta | {{ congreso.NOMBRE_EVENTO }}{% endblock %}
+{% block title %}Consultar mi Pase QR | {{ congreso.NOMBRE_EVENTO }}{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-    <!-- Encabezado y Botón Recuperar Pase -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <div>
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-navy-900 text-amber-300 mb-2">
-                Acreditación en Puerta
-            </span>
-            <h1 class="font-serif text-2xl sm:text-3xl font-bold text-navy-900">
-                Registro de Participantes
-            </h1>
-            <p class="text-sm text-slate-600 mt-1">
-                Complete los 4 pasos para obtener su Credencial Digital QR válida para ambos turnos.
-            </p>
-        </div>
-        <button type="button" id="btnAbrirRecuperar"
-                class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-300 text-navy-900 text-sm font-semibold shadow-sm hover:bg-slate-50 hover:border-navy-900 transition shrink-0">
-            <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2M8 8h2v2H8V8zm6 0h2v2h-2V8zm-6 6h2v2H8v-2zm6 0h2v2h-2v-2z"/>
-            </svg>
-            Recuperar / Ver mi Pase QR
-        </button>
-    </div>
-
-    <!-- Barra de Progreso Stepper (4 Etapas) -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 mb-6">
-        <div class="grid grid-cols-4 gap-2 relative">
-            <div class="step-indicator flex flex-col items-center text-center" data-step="1">
-                <div class="step-circle w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold bg-navy-900 text-white transition">1</div>
-                <span class="step-label mt-1.5 text-[11px] sm:text-xs font-semibold text-navy-900">Datos</span>
-            </div>
-            <div class="step-indicator flex flex-col items-center text-center" data-step="2">
-                <div class="step-circle w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold bg-slate-100 text-slate-400 transition">2</div>
-                <span class="step-label mt-1.5 text-[11px] sm:text-xs font-medium text-slate-400">Pago</span>
-            </div>
-            <div class="step-indicator flex flex-col items-center text-center" data-step="3">
-                <div class="step-circle w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold bg-slate-100 text-slate-400 transition">3</div>
-                <span class="step-label mt-1.5 text-[11px] sm:text-xs font-medium text-slate-400">Generar QR</span>
-            </div>
-            <div class="step-indicator flex flex-col items-center text-center" data-step="4">
-                <div class="step-circle w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold bg-slate-100 text-slate-400 transition">4</div>
-                <span class="step-label mt-1.5 text-[11px] sm:text-xs font-medium text-slate-400">Pase Digital</span>
-            </div>
-        </div>
-        <div class="mt-4 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-            <div id="stepperProgressBar" class="h-full bg-gradient-to-r from-navy-900 to-amber-500 transition-all duration-500" style="width: 25%"></div>
-        </div>
-    </div>
-
-    <!-- Tarjeta Principal de Contenido -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-
-        <!-- ======================================================= -->
-        <!-- PASO 1: REGISTRO DE DATOS -->
-        <!-- ======================================================= -->
-        <section id="paso1" class="p-6 sm:p-8 fade-in">
-            <h2 class="text-lg font-bold text-navy-900 mb-1">Paso 1: Registro de Datos Personales</h2>
-            <p class="text-sm text-slate-500 mb-6">
-                Ingrese su DNI para verificar automáticamente si pertenece al padrón de alumnos matriculados.
-            </p>
-
-            <div id="alertaPaso1" class="hidden mb-5 p-4 rounded-xl text-sm border"></div>
-
-            <form id="formRegistro" class="space-y-5" novalidate>
-                {% csrf_token %}
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                        <label for="inputDni" class="block text-sm font-semibold text-slate-700 mb-1.5">
-                            DNI (8 dígitos) <span class="text-rose-500">*</span>
-                        </label>
-                        <input type="text" id="inputDni" name="dni" maxlength="8" inputmode="numeric" required
-                               placeholder="Ej. 71234567"
-                               class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-navy-900 focus:border-navy-900 outline-none text-sm font-medium tracking-wider transition">
-                    </div>
-
-                    <div>
-                        <label for="inputCodigo" class="block text-sm font-semibold text-slate-700 mb-1.5">
-                            Código de Alumno <span class="text-xs font-normal text-slate-400">(opcional si es externo)</span>
-                        </label>
-                        <input type="text" id="inputCodigo" name="codigo_alumno" maxlength="32"
-                               placeholder="Ej. 20210458"
-                               class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-navy-900 focus:border-navy-900 outline-none text-sm font-medium uppercase transition">
-                    </div>
-                </div>
-
-                <div>
-                    <label for="inputNombre" class="block text-sm font-semibold text-slate-700 mb-1.5">
-                        Apellidos y Nombres Completos <span class="text-rose-500">*</span>
-                    </label>
-                    <input type="text" id="inputNombre" name="apellidos_nombres" maxlength="200" required
-                           placeholder="Ej. Pérez García, Juan Carlos"
-                           class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-navy-900 focus:border-navy-900 outline-none text-sm uppercase transition">
-                </div>
-
-                <!-- Tarjeta Dinámica de Tarifa Calculada por el Backend -->
-                <div id="tarjetaTarifa" class="rounded-xl border border-slate-200 bg-slate-50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition">
-                    <div>
-                        <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                            Tarifa Asignada Automáticamente
-                        </div>
-                        <div id="tarifaDescripcion" class="text-sm font-semibold text-navy-900 mt-0.5">
-                            Ingrese su DNI o Código para verificar el padrón
-                        </div>
-                    </div>
-                    <div class="text-left sm:text-right">
-                        <span id="tarifaMonto" class="text-2xl font-bold text-navy-900">S/ --.--</span>
-                    </div>
-                </div>
-
-                <div class="pt-2">
-                    <button type="submit" id="btnContinuarPago"
-                            class="w-full py-3.5 px-6 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-semibold text-sm shadow-sm transition flex items-center justify-center gap-2 disabled:opacity-60">
-                        <span>Continuar a Verificación de Pago</span>
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-                        </svg>
-                    </button>
-                </div>
-            </form>
-        </section>
-
-        <!-- ======================================================= -->
-        <!-- PASO 2: VERIFICACIÓN DE PAGO (ESPERA EN TIEMPO REAL) -->
-        <!-- ======================================================= -->
-        <section id="paso2" class="hidden p-6 sm:p-8 fade-in">
-            <div class="flex items-start justify-between gap-4 pb-5 border-b border-slate-200">
-                <div>
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
-                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
-                        PENDIENTE DE VALIDACIÓN EN CAJA
-                    </span>
-                    <h2 class="text-xl font-bold text-navy-900 mt-2">Paso 2: Realice su Pago en Puerta</h2>
-                </div>
-                <div class="text-right">
-                    <div class="text-xs text-slate-500 uppercase font-semibold">Monto Exacto</div>
-                    <div id="p2Monto" class="text-3xl font-bold text-navy-900">S/ 0.00</div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                    <div class="text-xs font-semibold uppercase text-slate-500 mb-2">Datos Registrados</div>
-                    <div class="space-y-1 text-sm">
-                        <p><span class="text-slate-500">Participante:</span> <strong id="p2Nombre" class="text-navy-900"></strong></p>
-                        <p><span class="text-slate-500">DNI:</span> <strong id="p2Dni" class="text-navy-900"></strong></p>
-                        <p><span class="text-slate-500">Código:</span> <strong id="p2Codigo" class="text-navy-900"></strong></p>
-                        <p><span class="text-slate-500">Categoría:</span> <strong id="p2Tarifa" class="text-navy-900"></strong></p>
-                    </div>
-                </div>
-
-                <div class="p-4 rounded-xl bg-navy-900 text-white">
-                    <div class="text-xs font-semibold uppercase text-amber-300 mb-2">Medios de Pago Aceptados</div>
-                    <ul class="space-y-2 text-sm text-slate-200">
-                        <li class="flex items-center justify-between">
-                            <span>Yape / Plin:</span>
-                            <strong class="text-white tracking-wide">{{ congreso.YAPE_NUMERO }}</strong>
-                        </li>
-                        <li class="text-xs text-slate-400">Titular: {{ congreso.YAPE_TITULAR }}</li>
-                        <li class="pt-2 border-t border-slate-700 text-xs text-amber-200">
-                            También puede pagar en <strong>efectivo directamente en mesa de acreditación</strong> indicando su número de DNI.
-                        </li>
-                    </ul>
-                </div>
-            </div>
-
-            <div class="rounded-xl bg-blue-50 border border-blue-200 p-4 flex items-center gap-3 text-sm text-blue-900">
-                <svg class="w-5 h-5 text-blue-600 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                </svg>
-                <div>
-                    <strong>Esperando confirmación del administrador...</strong>
-                    <p class="text-xs text-blue-700 mt-0.5">
-                        Esta pantalla se actualizará automáticamente apenas el staff confirme su pago. No necesita recargar la página.
-                    </p>
-                </div>
-            </div>
-        </section>
-
-        <!-- ======================================================= -->
-        <!-- PASO 3: GENERACIÓN DE QR CRIPTOGRÁFICO (TRANSICIÓN) -->
-        <!-- ======================================================= -->
-        <section id="paso3" class="hidden p-10 text-center fade-in">
-            <div class="w-16 h-16 mx-auto rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-4">
-                <svg class="w-9 h-9 animate-pulse" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-            </div>
-            <h2 class="text-xl font-bold text-navy-900">Pago Confirmado</h2>
-            <p class="text-sm text-slate-600 mt-1">
-                Generando su Pase Digital QR único con firma criptográfica...
-            </p>
-        </section>
-
-        <!-- ======================================================= -->
-        <!-- PASO 4: CREDENCIAL DIGITAL QR -->
-        <!-- ======================================================= -->
-        <section id="paso4" class="hidden p-6 sm:p-8 fade-in">
-            <div class="max-w-md mx-auto">
-                <!-- Credencial Estilo Pase Corporativo -->
-                <div class="rounded-2xl border-2 border-navy-900 overflow-hidden shadow-lg bg-white">
-                    <div class="bg-navy-900 text-white px-5 py-4 flex items-center justify-between">
-                        <div>
-                            <div class="text-[10px] uppercase tracking-widest text-amber-300 font-semibold">Credencial Oficial</div>
-                            <div class="font-serif font-bold text-base">{{ congreso.NOMBRE_EVENTO }}</div>
-                        </div>
-                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
-                            PAGADO
-                        </span>
-                    </div>
-
-                    <div class="p-6 text-center">
-                        <div class="inline-block p-3 bg-white rounded-2xl border border-slate-200 shadow-inner">
-                            <img id="p4QrImg" src="" alt="Código QR Único del Participante" class="w-56 h-56 mx-auto object-contain">
-                        </div>
-
-                        <h3 id="p4Nombre" class="mt-4 font-bold text-lg text-navy-900 leading-snug"></h3>
-                        <div class="mt-1 flex items-center justify-center gap-3 text-xs text-slate-600 font-medium">
-                            <span>DNI: <strong id="p4Dni" class="text-navy-900"></strong></span>
-                            <span>&middot;</span>
-                            <span>Código: <strong id="p4Codigo" class="text-navy-900"></strong></span>
-                        </div>
-                        <div id="p4Tarifa" class="mt-2 inline-block px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700"></div>
-
-                        <!-- Ventanas Horarias de Activación -->
-                        <div class="mt-5 grid grid-cols-2 gap-2.5 text-left">
-                            <div id="p4BloqueManana" class="p-3 rounded-xl border border-slate-200 bg-slate-50">
-                                <div class="text-[11px] font-bold uppercase text-navy-900">Turno Mañana</div>
-                                <div class="text-xs text-slate-600">09:00 AM - 01:00 PM</div>
-                                <div id="p4EstadoManana" class="mt-1 text-[11px] font-semibold text-slate-500">Pendiente</div>
-                            </div>
-                            <div id="p4BloqueTarde" class="p-3 rounded-xl border border-slate-200 bg-slate-50">
-                                <div class="text-[11px] font-bold uppercase text-navy-900">Turno Tarde</div>
-                                <div class="text-xs text-slate-600">03:00 PM - 07:00 PM</div>
-                                <div id="p4EstadoTarde" class="mt-1 text-[11px] font-semibold text-slate-500">Pendiente</div>
-                            </div>
-                        </div>
-
-                        <p class="mt-4 text-[11px] text-slate-500">
-                            Este <strong>mismo QR</strong> es personal e intransferible y sirve para registrar su ingreso en ambos turnos.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Botones de Acción -->
-                <div class="mt-5 flex flex-col sm:flex-row gap-3">
-                    <a id="p4BtnDescargar" href="#" download
-                       class="flex-1 py-3 px-5 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-semibold text-sm text-center shadow-sm transition flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3"/>
-                        </svg>
-                        Descargar QR en PNG
-                    </a>
-                    <button type="button" id="btnNuevoRegistro"
-                            class="py-3 px-4 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-sm transition">
-                        Volver al inicio
-                    </button>
-                </div>
-            </div>
-        </section>
-    </div>
-</div>
-
-<!-- Modal: Recuperar / Ver mi Pase QR -->
-<div id="modalRecuperar" class="fixed inset-0 z-50 hidden bg-navy-950/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 fade-in">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="font-serif text-xl font-bold text-navy-900">Recuperar / Ver mi Pase QR</h3>
-            <button type="button" id="btnCerrarRecuperar" class="text-slate-400 hover:text-slate-700 text-xl font-bold leading-none">&times;</button>
-        </div>
-        <p class="text-sm text-slate-600 mb-4">
-            Ingrese su número de DNI (8 dígitos) para consultar su estado de pago o volver a descargar su credencial QR.
+<div class="max-w-xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+    <!-- Encabezado -->
+    <div class="text-center mb-8">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-navy-900 text-amber-300 mb-3">
+            Credencial Digital del Congreso
+        </span>
+        <h1 class="font-serif text-2xl sm:text-3xl font-bold text-navy-900">
+            Consultar y Descargar mi Pase QR
+        </h1>
+        <p class="text-sm text-slate-600 mt-2">
+            Ingrese su número de DNI (8 dígitos) para visualizar y descargar su código QR personal de ingreso.
         </p>
-        <div id="alertaRecuperar" class="hidden mb-4 p-3 rounded-xl text-sm bg-rose-50 text-rose-700 border border-rose-200"></div>
-        <form id="formRecuperar" class="space-y-4">
-            <input type="text" id="inputRecuperarDni" maxlength="8" inputmode="numeric" required
-                   placeholder="Ingrese su DNI (8 dígitos)"
-                   class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-navy-900 outline-none text-sm font-medium tracking-wider">
-            <button type="submit"
-                    class="w-full py-2.5 px-4 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-semibold text-sm transition">
-                Buscar mi Pase
-            </button>
+    </div>
+
+    <!-- Buscador de Pase QR -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+        <div id="alertaConsulta" class="hidden mb-5 p-4 rounded-xl text-sm border"></div>
+
+        <form id="formConsultarQr" class="space-y-4" novalidate>
+            <div>
+                <label for="inputDniConsulta" class="block text-sm font-semibold text-slate-700 mb-1.5">
+                    Número de DNI
+                </label>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <input type="text" id="inputDniConsulta" maxlength="8" inputmode="numeric" required autofocus
+                           placeholder="Ej. 71234567"
+                           class="flex-1 px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-navy-900 focus:border-navy-900 outline-none text-base font-semibold tracking-widest transition">
+                    <button type="submit" id="btnBuscarQr"
+                            class="px-6 py-3 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-semibold text-sm shadow-sm transition flex items-center justify-center gap-2 shrink-0 disabled:opacity-60">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
+                        </svg>
+                        Consultar QR
+                    </button>
+                </div>
+            </div>
         </form>
     </div>
+
+    <!-- Resultado: Credencial Digital QR -->
+    <section id="seccionCredencial" class="hidden mt-6 fade-in">
+        <div class="rounded-2xl border-2 border-navy-900 overflow-hidden shadow-lg bg-white">
+            <div class="bg-navy-900 text-white px-5 py-4 flex items-center justify-between">
+                <div>
+                    <div class="text-[10px] uppercase tracking-widest text-amber-300 font-semibold">Credencial Oficial</div>
+                    <div class="font-serif font-bold text-base">{{ congreso.NOMBRE_EVENTO }}</div>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+                    PASE ACTIVO
+                </span>
+            </div>
+
+            <div class="p-6 text-center">
+                <div class="inline-block p-3 bg-white rounded-2xl border border-slate-200 shadow-inner">
+                    <img id="qrImg" src="" alt="Código QR Único del Participante" class="w-56 h-56 mx-auto object-contain">
+                </div>
+
+                <h2 id="qrNombre" class="mt-4 font-bold text-lg text-navy-900 leading-snug"></h2>
+                <div class="mt-1 flex items-center justify-center gap-3 text-xs text-slate-600 font-medium">
+                    <span>DNI: <strong id="qrDni" class="text-navy-900"></strong></span>
+                    <span>&middot;</span>
+                    <span>Código: <strong id="qrCodigo" class="text-navy-900"></strong></span>
+                </div>
+
+                <!-- Horarios de Activación -->
+                <div class="mt-5 grid grid-cols-2 gap-2.5 text-left">
+                    <div id="bloqueManana" class="p-3 rounded-xl border border-slate-200 bg-slate-50">
+                        <div class="text-[11px] font-bold uppercase text-navy-900">Turno Mañana</div>
+                        <div class="text-xs text-slate-600">09:00 AM - 01:00 PM</div>
+                        <div id="estadoManana" class="mt-1 text-[11px] font-semibold text-slate-500">Habilitado en horario</div>
+                    </div>
+                    <div id="bloqueTarde" class="p-3 rounded-xl border border-slate-200 bg-slate-50">
+                        <div class="text-[11px] font-bold uppercase text-navy-900">Turno Tarde</div>
+                        <div class="text-xs text-slate-600">03:00 PM - 07:00 PM</div>
+                        <div id="estadoTarde" class="mt-1 text-[11px] font-semibold text-slate-500">Habilitado en horario</div>
+                    </div>
+                </div>
+
+                <p class="mt-4 text-[11px] text-slate-500">
+                    Este <strong>mismo QR</strong> es personal e intransferible y sirve para registrar su asistencia en ambos bloques.
+                </p>
+            </div>
+        </div>
+
+        <!-- Botones de Descarga y Nueva Consulta -->
+        <div class="mt-4 flex flex-col sm:flex-row gap-3">
+            <a id="btnDescargarQr" href="#" download
+               class="flex-1 py-3 px-5 rounded-xl bg-navy-900 hover:bg-navy-800 text-white font-semibold text-sm text-center shadow-sm transition flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3"/>
+                </svg>
+                Descargar QR en PNG
+            </a>
+            <button type="button" id="btnLimpiarConsulta"
+                    class="py-3 px-4 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold text-sm transition">
+                Nueva consulta
+            </button>
+        </div>
+    </section>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
 (function () {
-    const inputDni = document.getElementById('inputDni');
-    const inputCodigo = document.getElementById('inputCodigo');
-    const inputNombre = document.getElementById('inputNombre');
-    const tarjetaTarifa = document.getElementById('tarjetaTarifa');
-    const tarifaDescripcion = document.getElementById('tarifaDescripcion');
-    const tarifaMonto = document.getElementById('tarifaMonto');
-    const alertaPaso1 = document.getElementById('alertaPaso1');
-    const formRegistro = document.getElementById('formRegistro');
-    const btnContinuarPago = document.getElementById('btnContinuarPago');
+    const inputDni = document.getElementById('inputDniConsulta');
+    const form = document.getElementById('formConsultarQr');
+    const btnBuscar = document.getElementById('btnBuscarQr');
+    const alerta = document.getElementById('alertaConsulta');
+    const seccion = document.getElementById('seccionCredencial');
 
-    let dniActivo = null;
-    let pollingTimer = null;
-    let lookupDebounce = null;
-
-    function mostrarPaso(num) {
-        [1, 2, 3, 4].forEach(i => {
-            document.getElementById('paso' + i).classList.toggle('hidden', i !== num);
-        });
-        document.getElementById('stepperProgressBar').style.width = (num * 25) + '%';
-
-        document.querySelectorAll('.step-indicator').forEach(el => {
-            const step = parseInt(el.dataset.step, 10);
-            const circle = el.querySelector('.step-circle');
-            const label = el.querySelector('.step-label');
-            if (step < num) {
-                circle.className = 'step-circle w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold bg-emerald-600 text-white transition';
-                circle.textContent = '✓';
-                label.className = 'step-label mt-1.5 text-[11px] sm:text-xs font-semibold text-emerald-700';
-            } else if (step === num) {
-                circle.className = 'step-circle w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold bg-navy-900 text-white ring-4 ring-navy-900/15 transition';
-                circle.textContent = step;
-                label.className = 'step-label mt-1.5 text-[11px] sm:text-xs font-bold text-navy-900';
-            } else {
-                circle.className = 'step-circle w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold bg-slate-100 text-slate-400 transition';
-                circle.textContent = step;
-                label.className = 'step-label mt-1.5 text-[11px] sm:text-xs font-medium text-slate-400';
-            }
-        });
-    }
-
-    function mostrarAlertaPaso1(html, tipo = 'error') {
-        alertaPaso1.classList.remove('hidden', 'bg-rose-50', 'text-rose-800', 'border-rose-200', 'bg-amber-50', 'text-amber-900', 'border-amber-200');
+    function mostrarAlerta(texto, tipo = 'error') {
+        alerta.classList.remove(
+            'hidden',
+            'bg-rose-50', 'text-rose-800', 'border-rose-200',
+            'bg-amber-50', 'text-amber-900', 'border-amber-200'
+        );
         if (tipo === 'warning') {
-            alertaPaso1.classList.add('bg-amber-50', 'text-amber-900', 'border-amber-200');
+            alerta.classList.add('bg-amber-50', 'text-amber-900', 'border-amber-200');
         } else {
-            alertaPaso1.classList.add('bg-rose-50', 'text-rose-800', 'border-rose-200');
+            alerta.classList.add('bg-rose-50', 'text-rose-800', 'border-rose-200');
         }
-        alertaPaso1.innerHTML = html;
+        alerta.textContent = texto;
     }
 
-    function limpiarAlertaPaso1() {
-        alertaPaso1.classList.add('hidden');
-        alertaPaso1.innerHTML = '';
-    }
-
-    async function consultarPadron() {
-        const dni = inputDni.value.trim();
-        const codigo = inputCodigo.value.trim();
-        if (dni.length < 8 && codigo.length < 4) {
-            tarifaDescripcion.textContent = 'Ingrese su DNI o Código para verificar el padrón';
-            tarifaMonto.textContent = 'S/ --.--';
-            tarjetaTarifa.className = 'rounded-xl border border-slate-200 bg-slate-50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition';
-            return;
-        }
-        try {
-            const params = new URLSearchParams({ dni, codigo });
-            const res = await fetch(`{% url 'api_consultar_padron' %}?${params.toString()}`);
-            const data = await res.json();
-            if (!res.ok || !data.ok) return;
-
-            if (data.ya_registrado) {
-                mostrarAlertaPaso1(
-                    `<strong>DNI ya registrado:</strong> ${escapeHtml(data.apellidos_nombres)} (${escapeHtml(data.estado_pago)}). ` +
-                    `<button type="button" id="btnIrEstadoExistente" class="underline font-bold ml-1">Ver mi estado / Pase QR</button>`,
-                    'warning'
-                );
-                const btn = document.getElementById('btnIrEstadoExistente');
-                if (btn) btn.addEventListener('click', () => cargarEstadoPorDni(data.dni));
-                return;
-            }
-            limpiarAlertaPaso1();
-
-            if (data.es_matriculado) {
-                tarifaDescripcion.textContent = 'Alumno Matriculado verificado en Padrón Oficial';
-                tarifaMonto.textContent = `S/ ${data.monto}`;
-                tarjetaTarifa.className = 'rounded-xl border border-navy-900/30 bg-amber-50/70 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition';
-                if (data.padron) {
-                    if (!inputCodigo.value.trim()) inputCodigo.value = data.padron.codigo_alumno;
-                    if (!inputNombre.value.trim()) inputNombre.value = data.padron.apellidos_nombres;
-                }
-            } else {
-                tarifaDescripcion.textContent = 'Participante Externo / Público General';
-                tarifaMonto.textContent = `S/ ${data.monto}`;
-                tarjetaTarifa.className = 'rounded-xl border border-slate-300 bg-slate-50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition';
-            }
-        } catch (err) {
-            console.error(err);
-        }
+    function ocultarAlerta() {
+        alerta.classList.add('hidden');
+        alerta.textContent = '';
     }
 
     inputDni.addEventListener('input', () => {
         inputDni.value = inputDni.value.replace(/\D/g, '').slice(0, 8);
-        clearTimeout(lookupDebounce);
-        lookupDebounce = setTimeout(consultarPadron, 300);
     });
 
-    inputCodigo.addEventListener('input', () => {
-        clearTimeout(lookupDebounce);
-        lookupDebounce = setTimeout(consultarPadron, 400);
-    });
-
-    formRegistro.addEventListener('submit', async (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        limpiarAlertaPaso1();
-        btnContinuarPago.disabled = true;
+        ocultarAlerta();
+        seccion.classList.add('hidden');
 
-        try {
-            const res = await fetch("{% url 'api_registrar_participante' %}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCsrfToken(),
-                },
-                body: JSON.stringify({
-                    dni: inputDni.value.trim(),
-                    codigo_alumno: inputCodigo.value.trim(),
-                    apellidos_nombres: inputNombre.value.trim(),
-                }),
-            });
-            const data = await res.json();
-            if (!res.ok || !data.ok) {
-                let msg = data.error || 'No se pudo completar el registro.';
-                if (data.errors) {
-                    const detalles = Object.values(data.errors).flat().map(escapeHtml).join('<br>');
-                    if (detalles) msg = detalles;
-                }
-                mostrarAlertaPaso1(msg);
-                return;
-            }
-            mostrarPaso2(data.participante);
-            iniciarPolling(data.participante.dni);
-        } catch (err) {
-            mostrarAlertaPaso1('Error de conexión con el servidor. Intente nuevamente.');
-        } finally {
-            btnContinuarPago.disabled = false;
-        }
-    });
-
-    function mostrarPaso2(p) {
-        dniActivo = p.dni;
-        document.getElementById('p2Monto').textContent = `S/ ${p.monto_pagar}`;
-        document.getElementById('p2Nombre').textContent = p.apellidos_nombres;
-        document.getElementById('p2Dni').textContent = p.dni;
-        document.getElementById('p2Codigo').textContent = p.codigo_alumno || 'EXTERNO';
-        document.getElementById('p2Tarifa').textContent = p.tipo_tarifa;
-        mostrarPaso(2);
-    }
-
-    function mostrarPaso4(p) {
-        detenerPolling();
-        document.getElementById('p4QrImg').src = p.qr_base64;
-        document.getElementById('p4Nombre').textContent = p.apellidos_nombres;
-        document.getElementById('p4Dni').textContent = p.dni;
-        document.getElementById('p4Codigo').textContent = p.codigo_alumno || 'EXTERNO';
-        document.getElementById('p4Tarifa').textContent = `${p.tipo_tarifa} · S/ ${p.monto_pagar}`;
-        document.getElementById('p4BtnDescargar').href = p.qr_download_url;
-
-        const estM = document.getElementById('p4EstadoManana');
-        const boxM = document.getElementById('p4BloqueManana');
-        if (p.asistencia_manana) {
-            estM.textContent = `✔ Registrada (${p.hora_manana})`;
-            estM.className = 'mt-1 text-[11px] font-bold text-emerald-700';
-            boxM.className = 'p-3 rounded-xl border border-emerald-300 bg-emerald-50';
-        } else {
-            estM.textContent = 'Habilitado en horario';
-            estM.className = 'mt-1 text-[11px] font-semibold text-slate-500';
-            boxM.className = 'p-3 rounded-xl border border-slate-200 bg-slate-50';
+        const dni = inputDni.value.trim();
+        if (dni.length !== 8) {
+            mostrarAlerta('Ingrese exactamente 8 dígitos numéricos de su DNI.');
+            return;
         }
 
-        const estT = document.getElementById('p4EstadoTarde');
-        const boxT = document.getElementById('p4BloqueTarde');
-        if (p.asistencia_tarde) {
-            estT.textContent = `✔ Registrada (${p.hora_tarde})`;
-            estT.className = 'mt-1 text-[11px] font-bold text-emerald-700';
-            boxT.className = 'p-3 rounded-xl border border-emerald-300 bg-emerald-50';
-        } else {
-            estT.textContent = 'Habilitado en horario';
-            estT.className = 'mt-1 text-[11px] font-semibold text-slate-500';
-            boxT.className = 'p-3 rounded-xl border border-slate-200 bg-slate-50';
-        }
-
-        mostrarPaso(4);
-    }
-
-    function detenerPolling() {
-        if (pollingTimer) {
-            clearInterval(pollingTimer);
-            pollingTimer = null;
-        }
-    }
-
-    function iniciarPolling(dni) {
-        detenerPolling();
-        pollingTimer = setInterval(async () => {
-            try {
-                const res = await fetch(`/api/publico/estado/${encodeURIComponent(dni)}/`);
-                if (!res.ok) return;
-                const data = await res.json();
-                if (data.ok && data.estado_pago === 'PAGADO') {
-                    detenerPolling();
-                    mostrarPaso(3);
-                    setTimeout(() => mostrarPaso4(data), 1100);
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        }, 4000);
-    }
-
-    async function cargarEstadoPorDni(dni, desdeModal = false) {
-        const alertaRec = document.getElementById('alertaRecuperar');
-        alertaRec.classList.add('hidden');
+        btnBuscar.disabled = true;
         try {
             const res = await fetch(`/api/publico/estado/${encodeURIComponent(dni)}/`);
             const data = await res.json();
             if (!res.ok || !data.ok) {
-                if (desdeModal) {
-                    alertaRec.textContent = data.error || 'No se encontró inscripción para este DNI.';
-                    alertaRec.classList.remove('hidden');
-                }
+                mostrarAlerta(data.error || 'No se encontró un pase registrado para este DNI.');
                 return;
             }
-            cerrarModalRecuperar();
-            if (data.estado_pago === 'PAGADO') {
-                mostrarPaso4(data);
+
+            if (data.estado_pago !== 'PAGADO' || !data.qr_base64) {
+                mostrarAlerta('Su registro aún no tiene un Pase QR habilitado. Por favor consulte con el equipo de acreditación.', 'warning');
+                return;
+            }
+
+            document.getElementById('qrImg').src = data.qr_base64;
+            document.getElementById('qrNombre').textContent = data.apellidos_nombres;
+            document.getElementById('qrDni').textContent = data.dni;
+            document.getElementById('qrCodigo').textContent = data.codigo_alumno || 'EXTERNO';
+            document.getElementById('btnDescargarQr').href = data.qr_download_url;
+
+            const estM = document.getElementById('estadoManana');
+            const boxM = document.getElementById('bloqueManana');
+            if (data.asistencia_manana) {
+                estM.textContent = `✔ Registrada (${data.hora_manana})`;
+                estM.className = 'mt-1 text-[11px] font-bold text-emerald-700';
+                boxM.className = 'p-3 rounded-xl border border-emerald-300 bg-emerald-50';
             } else {
-                mostrarPaso2(data);
-                iniciarPolling(data.dni);
+                estM.textContent = 'Habilitado en horario';
+                estM.className = 'mt-1 text-[11px] font-semibold text-slate-500';
+                boxM.className = 'p-3 rounded-xl border border-slate-200 bg-slate-50';
             }
+
+            const estT = document.getElementById('estadoTarde');
+            const boxT = document.getElementById('bloqueTarde');
+            if (data.asistencia_tarde) {
+                estT.textContent = `✔ Registrada (${data.hora_tarde})`;
+                estT.className = 'mt-1 text-[11px] font-bold text-emerald-700';
+                boxT.className = 'p-3 rounded-xl border border-emerald-300 bg-emerald-50';
+            } else {
+                estT.textContent = 'Habilitado en horario';
+                estT.className = 'mt-1 text-[11px] font-semibold text-slate-500';
+                boxT.className = 'p-3 rounded-xl border border-slate-200 bg-slate-50';
+            }
+
+            seccion.classList.remove('hidden');
         } catch (err) {
-            if (desdeModal) {
-                alertaRec.textContent = 'Error de conexión al buscar el pase.';
-                alertaRec.classList.remove('hidden');
-            }
+            mostrarAlerta('Error de conexión con el servidor. Intente nuevamente.');
+        } finally {
+            btnBuscar.disabled = false;
         }
-    }
-
-    // Modal Recuperar QR
-    const modalRecuperar = document.getElementById('modalRecuperar');
-    const inputRecuperarDni = document.getElementById('inputRecuperarDni');
-
-    function abrirModalRecuperar() {
-        document.getElementById('alertaRecuperar').classList.add('hidden');
-        inputRecuperarDni.value = '';
-        modalRecuperar.classList.remove('hidden');
-        inputRecuperarDni.focus();
-    }
-    function cerrarModalRecuperar() {
-        modalRecuperar.classList.add('hidden');
-    }
-
-    document.getElementById('btnAbrirRecuperar').addEventListener('click', abrirModalRecuperar);
-    document.getElementById('btnCerrarRecuperar').addEventListener('click', cerrarModalRecuperar);
-    modalRecuperar.addEventListener('click', (e) => {
-        if (e.target === modalRecuperar) cerrarModalRecuperar();
     });
 
-    inputRecuperarDni.addEventListener('input', () => {
-        inputRecuperarDni.value = inputRecuperarDni.value.replace(/\D/g, '').slice(0, 8);
-    });
-
-    document.getElementById('formRecuperar').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const dni = inputRecuperarDni.value.trim();
-        if (dni.length !== 8) {
-            const alertaRec = document.getElementById('alertaRecuperar');
-            alertaRec.textContent = 'Ingrese exactamente 8 dígitos numéricos.';
-            alertaRec.classList.remove('hidden');
-            return;
-        }
-        cargarEstadoPorDni(dni, true);
-    });
-
-    document.getElementById('btnNuevoRegistro').addEventListener('click', () => {
-        detenerPolling();
-        formRegistro.reset();
-        limpiarAlertaPaso1();
-        tarifaDescripcion.textContent = 'Ingrese su DNI o Código para verificar el padrón';
-        tarifaMonto.textContent = 'S/ --.--';
-        mostrarPaso(1);
+    document.getElementById('btnLimpiarConsulta').addEventListener('click', () => {
+        ocultarAlerta();
+        seccion.classList.add('hidden');
+        inputDni.value = '';
+        inputDni.focus();
     });
 })();
 </script>
