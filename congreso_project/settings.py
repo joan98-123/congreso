@@ -145,3 +145,10 @@ CONGRESO_CONFIG = {
     "YAPE_TITULAR": "Tesorería Congreso Universitario",
     "PLIN_NUMERO": "999 888 777",
 }
+
+# Fuente de solo lectura (Google Sheets CSV export). El sistema NUNCA modifica la hoja.
+GOOGLE_SHEET_CSV_URL = os.environ.get(
+    "GOOGLE_SHEET_CSV_URL",
+    "https://docs.google.com/spreadsheets/d/1IDU8gAJ7wUm3GbPN9b_IHnS3qiM3dDWYREGWMFiQR4Y/export?format=csv&gid=0",
+)
+GOOGLE_SHEET_SYNC_INTERVAL = int(os.environ.get("GOOGLE_SHEET_SYNC_INTERVAL", "30"))

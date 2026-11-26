@@ -31,6 +31,7 @@ from .utils import (
     generar_token_qr,
     importar_padron_desde_archivo,
     obtener_bloque_horario_actual,
+    sincronizar_desde_google_sheet,
     verificar_firma_token_qr,
 )
 
@@ -223,6 +224,14 @@ def api_estado_participante(request, dni: str):
         .first()
     )
     if not participante:
+        # Si aún no está en BD, sincroniza en modo solo lectura desde Google Sheets
+        sincronizar_desde_google_sheet(force=True)
+        participante = (
+            Participante.objects.filter(dni=dni)
+            .exclude(estado_pago=Participante.ESTADO_ANULADO)
+            .first()
+        )
+    if not participante:
         return JsonResponse(
             {"ok": False, "error": "No se encontró ninguna inscripción activa para este DNI."},
             status=404,
@@ -329,6 +338,9 @@ def dashboard_view(request):
 @require_GET
 def api_dashboard_data(request):
     """API en vivo para auto-refresco cada 5 segundos del dashboard con paginación."""
+    # Sincronización periódica en solo lectura desde Google Sheets (cada 30s)
+    sincronizar_desde_google_sheet(force=False)
+
     q = (request.GET.get("q") or "").strip()
     filtro = (request.GET.get("estado") or "TODOS").strip().upper()
 
@@ -606,6 +618,28 @@ def api_configurar_modo_prueba(request):
 
 
 @login_required
+@require_POST
+def api_sincronizar_sheet(request):
+    """Sincroniza manualmente (solo lectura) los nuevos registros desde Google Sheets."""
+    resumen = sincronizar_desde_google_sheet(force=True)
+    if not resumen.get("ok"):
+        return JsonResponse(
+            {"ok": False, "error": resumen.get("error", "No se pudo sincronizar.")},
+            status=502,
+        )
+    return JsonResponse(
+        {
+            "ok": True,
+            "mensaje": (
+                f"Sincronización completada: {resumen['creados']} nuevos agregados, "
+                f"{resumen['actualizados']} actualizados."
+            ),
+            "resumen": resumen,
+        }
+    )
+
+
+@login_required
 @require_GET
 def exportar_excel_view(request):
     """Exporta el reporte oficial multi-hoja del congreso en formato .xlsx."""
@@ -682,6 +716,9 @@ def api_escanear_qr(request):
         )
 
     # 2. Transacción atómica con select_for_update() para evitar doble marcaje simultáneo
+    if not Participante.objects.filter(qr_token=token).exists():
+        sincronizar_desde_google_sheet(force=True)
+
     with transaction.atomic():
         participante = (
             Participante.objects.select_for_update().filter(qr_token=token).first()

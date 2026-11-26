@@ -20,6 +20,13 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
+            <button type="button" id="btnSincronizarSheet"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-navy-900 text-sm font-semibold shadow-sm transition disabled:opacity-60">
+                <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Sincronizar Excel
+            </button>
             <a href="{% url 'escaner' %}"
                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold shadow-sm transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -323,6 +330,28 @@
     });
 
     document.getElementById('btnCerrarQr').addEventListener('click', () => document.getElementById('modalVerQr').classList.add('hidden'));
+
+    document.getElementById('btnSincronizarSheet').addEventListener('click', async function () {
+        const btn = this;
+        btn.disabled = true;
+        try {
+            const res = await fetch("{% url 'api_sincronizar_sheet' %}", {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() },
+            });
+            const data = await res.json();
+            if (res.ok && data.ok) {
+                mostrarToast(data.mensaje, 'success');
+                cargarDashboard();
+            } else {
+                mostrarToast(data.error || 'No se pudo sincronizar con Google Sheets.', 'error');
+            }
+        } catch (err) {
+            mostrarToast('Error de red al sincronizar.', 'error');
+        } finally {
+            btn.disabled = false;
+        }
+    });
 
     // Carga inicial + auto-refresco cada 5 segundos
     cargarDashboard();

@@ -11,15 +11,20 @@ import openpyxl
 from django.contrib.auth.models import User
 from django.core.management import call_command
 from django.db import connection
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from .models import ConfiguracionEvento, LogAsistencia, PadronMatriculado, Participante
-from .utils import importar_padron_desde_archivo, verificar_firma_token_qr
+from .utils import (
+    importar_padron_desde_archivo,
+    sincronizar_desde_google_sheet,
+    verificar_firma_token_qr,
+)
 
 LIMA_TZ = ZoneInfo("America/Lima")
 
 
+@override_settings(GOOGLE_SHEET_CSV_URL="")
 class CongresoSistemaTests(TestCase):
     def setUp(self):
         self.client = Client()
@@ -307,4 +312,40 @@ class CongresoSistemaTests(TestCase):
         self.assertEqual(r_pub.status_code, 200)
         self.assertContains(r_pub, "Consultar y Descargar mi Pase QR")
         self.assertNotContains(r_pub, "Continuar a Verificación de Pago")
+
+    @override_settings(GOOGLE_SHEET_CSV_URL="https://example.com/sheet.csv")
+    def test_sincronizacion_solo_lectura_google_sheet(self):
+        csv_mock = (
+            ",,,,,,,,\n"
+            ",Registro de Pagos,,,,,,,\n"
+            ",N°,Nombres y Apellidos,DNI,Código de Estudiante,Monto,Método de Pago,,\n"
+            ",1,Alumno Nuevo Uno,74561234,2026110001,S/ 60.00,Yape,,\n"
+            ",2,Invitado Fuera,74569999,INVITADO EXTERNO,S/ 40.00,Yape,,\n"
+            ",3,Sin Dni Valido,DOCENTE,DOCENTE,S/ 50.00,Efectivo,,\n"
+        ).encode("utf-8")
+
+        class _FakeResp:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *a):
+                return False
+
+            def read(self):
+                return csv_mock
+
+        with patch("acreditacion.utils.urllib.request.urlopen", return_value=_FakeResp()):
+            res = sincronizar_desde_google_sheet(force=True)
+            self.assertTrue(res["ok"])
+            self.assertEqual(res["creados"], 1)
+            self.assertEqual(res["excluidos_externos"], 1)
+            self.assertEqual(res["omitidos_dni"], 1)
+
+        p = Participante.objects.get(dni="74561234")
+        self.assertEqual(p.apellidos_nombres, "ALUMNO NUEVO UNO")
+        self.assertEqual(p.codigo_alumno, "2026110001")
+        self.assertEqual(p.estado_pago, Participante.ESTADO_PAGADO)
+        self.assertTrue(verificar_firma_token_qr(p.qr_token)[0])
+        self.assertFalse(Participante.objects.filter(dni="74569999").exists())
+
 

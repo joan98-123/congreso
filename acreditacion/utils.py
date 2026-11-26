@@ -12,6 +12,8 @@ import os
 import re
 import sqlite3
 import tempfile
+import time as time_mod
+import urllib.request
 import uuid
 from datetime import time
 from decimal import Decimal
@@ -30,12 +32,24 @@ from django.utils import timezone
 from .models import ConfiguracionEvento, LogAsistencia, PadronMatriculado, Participante
 
 QR_TOKEN_PREFIX = "CUNV1"
+_LAST_SHEET_SYNC_TS = 0.0
 
 
 def _qr_signing_key() -> bytes:
     """Deriva una clave dedicada para firmar tokens QR usando HMAC-SHA256."""
     secret = f"{settings.SECRET_KEY}:congreso-qr-hmac-v1".encode("utf-8")
     return hashlib.sha256(secret).digest()
+
+
+def uuid_deterministico_por_dni(dni: str) -> uuid.UUID:
+    """
+    Genera un UUIDv5 determinístico derivado del DNI y SECRET_KEY para que un mismo
+    participante sincronizado desde Google Sheets conserve siempre el mismo QR
+    incluso tras reinicios en frío de Vercel Serverless.
+    """
+    ns_bytes = hashlib.sha256(f"{settings.SECRET_KEY}:congreso-uuid-ns".encode("utf-8")).digest()[:16]
+    namespace = uuid.UUID(bytes=ns_bytes)
+    return uuid.uuid5(namespace, f"dni:{dni.strip()}")
 
 
 def firmar_uuid_qr(uid: uuid.UUID) -> str:
@@ -621,3 +635,137 @@ def generar_reporte_excel() -> bytes:
     output = io.BytesIO()
     wb.save(output)
     return output.getvalue()
+
+
+def sincronizar_desde_google_sheet(force: bool = False) -> dict:
+    """
+    Lee en modo ESTRICTAMENTE SOLO LECTURA (HTTP GET CSV export) el Google Sheet configurado
+    y agrega automáticamente nuevos participantes (excluyendo INVITADO EXTERNO, sin monto ni
+    método de pago). Nunca escribe ni modifica el Google Sheet.
+    """
+    global _LAST_SHEET_SYNC_TS
+
+    url = getattr(settings, "GOOGLE_SHEET_CSV_URL", "")
+    if not url:
+        return {"ok": False, "skipped": True, "error": "GOOGLE_SHEET_CSV_URL no configurado."}
+
+    intervalo = getattr(settings, "GOOGLE_SHEET_SYNC_INTERVAL", 30)
+    ahora_ts = time_mod.monotonic()
+    if not force and _LAST_SHEET_SYNC_TS and (ahora_ts - _LAST_SHEET_SYNC_TS) < intervalo:
+        return {"ok": True, "skipped": True, "creados": 0, "actualizados": 0}
+
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "CongresoAcreditacion/1.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            raw_bytes = resp.read()
+        text = raw_bytes.decode("utf-8-sig", errors="replace")
+    except Exception as exc:
+        return {"ok": False, "skipped": False, "error": f"No se pudo leer Google Sheet: {exc}"}
+
+    rows = list(csv.reader(io.StringIO(text)))
+    idx_nombre = None
+    idx_dni = None
+    idx_codigo = None
+    header_row_idx = None
+
+    for i, row in enumerate(rows[:30]):
+        norm_cells = [_normalizar_cabecera(c) for c in row]
+        if "dni" in norm_cells and any(
+            k in norm_cells for k in ("nombres_y_apellidos", "apellidos_y_nombres", "apellidos_nombres")
+        ):
+            header_row_idx = i
+            idx_dni = norm_cells.index("dni")
+            for k in ("nombres_y_apellidos", "apellidos_y_nombres", "apellidos_nombres"):
+                if k in norm_cells:
+                    idx_nombre = norm_cells.index(k)
+                    break
+            for k in ("codigo_de_estudiante", "codigo_alumno", "codigo", "codigo_estudiante"):
+                if k in norm_cells:
+                    idx_codigo = norm_cells.index(k)
+                    break
+            break
+
+    if header_row_idx is None or idx_dni is None or idx_nombre is None:
+        return {"ok": False, "skipped": False, "error": "No se encontraron cabeceras DNI / Nombres en el Sheet."}
+
+    creados = 0
+    actualizados = 0
+    excluidos_externos = 0
+    omitidos_dni = 0
+    ahora_dt = timezone.now()
+
+    with transaction.atomic():
+        existentes_por_dni = {
+            p.dni: p
+            for p in Participante.objects.exclude(estado_pago=Participante.ESTADO_ANULADO)
+        }
+        vistos = set()
+
+        for row in rows[header_row_idx + 1 :]:
+            if len(row) <= max(idx_dni, idx_nombre):
+                continue
+
+            nombre = re.sub(r"\s+", " ", (row[idx_nombre] or "").strip())
+            dni = (row[idx_dni] or "").strip()
+            codigo = (
+                (row[idx_codigo] or "").strip().upper()
+                if idx_codigo is not None and len(row) > idx_codigo
+                else ""
+            )
+
+            if not nombre and not dni:
+                continue
+
+            if "INVITADO EXTERNO" in codigo:
+                excluidos_externos += 1
+                continue
+
+            if not re.fullmatch(r"\d{8}", dni):
+                omitidos_dni += 1
+                continue
+
+            if dni in vistos:
+                continue
+            vistos.add(dni)
+
+            nombre_upper = nombre.upper()[:200]
+            codigo_clean = codigo[:32]
+
+            existente = existentes_por_dni.get(dni)
+            if existente:
+                cambios = []
+                if existente.apellidos_nombres != nombre_upper:
+                    existente.apellidos_nombres = nombre_upper
+                    cambios.append("apellidos_nombres")
+                if codigo_clean and existente.codigo_alumno != codigo_clean:
+                    existente.codigo_alumno = codigo_clean
+                    cambios.append("codigo_alumno")
+                if cambios:
+                    existente.save(update_fields=cambios + ["actualizado_en"])
+                    actualizados += 1
+            else:
+                uid = uuid_deterministico_por_dni(dni)
+                token = firmar_uuid_qr(uid)
+                Participante.objects.create(
+                    dni=dni,
+                    codigo_alumno=codigo_clean,
+                    apellidos_nombres=nombre_upper,
+                    es_matriculado=True,
+                    tipo_tarifa=Participante.TARIFA_MATRICULADO,
+                    monto_pagar=Decimal("0.00"),
+                    estado_pago=Participante.ESTADO_PAGADO,
+                    fecha_validacion_pago=ahora_dt,
+                    qr_uuid=uid,
+                    qr_token=token,
+                )
+                creados += 1
+
+    _LAST_SHEET_SYNC_TS = time_mod.monotonic()
+    return {
+        "ok": True,
+        "skipped": False,
+        "creados": creados,
+        "actualizados": actualizados,
+        "excluidos_externos": excluidos_externos,
+        "omitidos_dni": omitidos_dni,
+    }

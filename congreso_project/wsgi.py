@@ -25,6 +25,8 @@ if os.environ.get("VERCEL"):
                 password=admin_pass,
             )
         call_command("cargar_participantes_iniciales", verbosity=0)
+        from acreditacion.utils import sincronizar_desde_google_sheet
+        sincronizar_desde_google_sheet(force=True)
 
 # Vercel Python Runtime busca el objeto WSGI/ASGI llamado `app`
 app = application

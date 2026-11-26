@@ -24,6 +24,7 @@ urlpatterns = [
     path("api/admin/anular-registro/<int:participante_id>/", views.api_anular_registro, name="api_anular_registro"),
     path("api/admin/ver-qr/<int:participante_id>/", views.api_admin_ver_qr, name="api_admin_ver_qr"),
     path("api/admin/importar-padron/", views.api_importar_padron, name="api_importar_padron"),
+    path("api/admin/sincronizar-sheet/", views.api_sincronizar_sheet, name="api_sincronizar_sheet"),
     path("api/admin/modo-prueba/", views.api_configurar_modo_prueba, name="api_configurar_modo_prueba"),
     path("api/admin/escanear-qr/", views.api_escanear_qr, name="api_escanear_qr"),
 ]
