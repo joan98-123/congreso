@@ -23,6 +23,7 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 import qrcode
 from qrcode.constants import ERROR_CORRECT_M
+from PIL import Image, ImageDraw, ImageFont
 
 from django.conf import settings
 from django.db import transaction
@@ -130,6 +131,164 @@ def generar_qr_base64(token: str) -> str:
     png_bytes = generar_qr_png_bytes(token)
     b64 = base64.b64encode(png_bytes).decode("ascii")
     return f"data:image/png;base64,{b64}"
+
+
+def _cargar_fuente(size: int, bold: bool = False):
+    """Carga una fuente TrueType compatible con tildes/ñ en Windows y Linux (Vercel)."""
+    candidatas = (
+        [
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+            "C:/Windows/Fonts/segoeuib.ttf",
+            "C:/Windows/Fonts/arialbd.ttf",
+            "DejaVuSans-Bold.ttf",
+        ]
+        if bold
+        else [
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+            "C:/Windows/Fonts/segoeui.ttf",
+            "C:/Windows/Fonts/arial.ttf",
+            "DejaVuSans.ttf",
+        ]
+    )
+    for ruta in candidatas:
+        if os.path.exists(ruta):
+            try:
+                return ImageFont.truetype(ruta, size=size)
+            except OSError:
+                continue
+    try:
+        return ImageFont.load_default(size=size)
+    except TypeError:
+        return ImageFont.load_default()
+
+
+def _envolver_texto(draw: ImageDraw.ImageDraw, texto: str, font, max_width: int) -> list[str]:
+    palabras = texto.split()
+    lineas = []
+    actual = ""
+    for p in palabras:
+        prueba = f"{actual} {p}".strip()
+        bbox = draw.textbbox((0, 0), prueba, font=font)
+        if (bbox[2] - bbox[0]) <= max_width or not actual:
+            actual = prueba
+        else:
+            lineas.append(actual)
+            actual = p
+    if actual:
+        lineas.append(actual)
+    return lineas
+
+
+def generar_credencial_qr_png_bytes(participante: Participante) -> bytes:
+    """
+    Genera una credencial digital completa en PNG de alta resolución (900x1260)
+    que incluye el QR único, Nombres y Apellidos, DNI, Código de Estudiante
+    y los horarios oficiales del congreso.
+    """
+    W, H = 900, 1260
+    navy = (15, 23, 42)
+    slate_dark = (30, 41, 59)
+    slate_muted = (100, 116, 139)
+    slate_border = (203, 213, 225)
+    bg_soft = (248, 250, 252)
+    gold = (197, 155, 39)
+    white = (255, 255, 255)
+
+    img = Image.new("RGB", (W, H), white)
+    draw = ImageDraw.Draw(img)
+
+    # Marco exterior sutil
+    draw.rounded_rectangle([(20, 20), (W - 20, H - 20)], radius=32, fill=white, outline=navy, width=6)
+
+    # Cabecera institucional azul marino + línea dorada
+    draw.rounded_rectangle([(23, 23), (W - 23, 220)], radius=28, fill=navy)
+    draw.rectangle([(23, 185), (W - 23, 220)], fill=navy)
+    draw.rectangle([(23, 220), (W - 23, 230)], fill=gold)
+
+    f_tag = _cargar_fuente(22, bold=True)
+    f_title = _cargar_fuente(38, bold=True)
+    f_sub = _cargar_fuente(22, bold=False)
+    f_name = _cargar_fuente(34, bold=True)
+    f_label = _cargar_fuente(20, bold=True)
+    f_val = _cargar_fuente(30, bold=True)
+    f_foot_bold = _cargar_fuente(21, bold=True)
+    f_foot = _cargar_fuente(19, bold=False)
+
+    evento = settings.CONGRESO_CONFIG.get("NOMBRE_EVENTO", "Congreso Universitario 2026").upper()
+    draw.text((W // 2, 62), "CREDENCIAL OFICIAL · PASE DIGITAL", fill=gold, font=f_tag, anchor="mm")
+    draw.text((W // 2, 122), evento, fill=white, font=f_title, anchor="mm")
+    draw.text((W // 2, 174), "CONTROL DE ASISTENCIA QR", fill=(203, 213, 225), font=f_sub, anchor="mm")
+
+    # Generar imagen QR nítida y pegarla centrada
+    qr = qrcode.QRCode(
+        version=None,
+        error_correction=ERROR_CORRECT_M,
+        box_size=12,
+        border=3,
+    )
+    qr.add_data(participante.qr_token)
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="#0f172a", back_color="#ffffff").convert("RGB")
+    qr_size = 500
+    qr_img = qr_img.resize((qr_size, qr_size), Image.Resampling.NEAREST)
+
+    qr_box_top = 268
+    qr_box_left = (W - qr_size) // 2
+    draw.rounded_rectangle(
+        [(qr_box_left - 22, qr_box_top - 22), (qr_box_left + qr_size + 22, qr_box_top + qr_size + 22)],
+        radius=24,
+        fill=white,
+        outline=slate_border,
+        width=3,
+    )
+    img.paste(qr_img, (qr_box_left, qr_box_top))
+
+    # Nombres y Apellidos (con salto de línea automático si es extenso)
+    y_cursor = qr_box_top + qr_size + 62
+    lineas_nombre = _envolver_texto(draw, participante.apellidos_nombres.upper(), f_name, W - 120)
+    for linea in lineas_nombre[:2]:
+        draw.text((W // 2, y_cursor), linea, fill=navy, font=f_name, anchor="mm")
+        y_cursor += 44
+
+    # Cajas de DNI y Código de Estudiante
+    card_top = max(y_cursor + 18, 920)
+    card_bottom = card_top + 110
+    mid = W // 2
+
+    # Caja izquierda: DNI
+    draw.rounded_rectangle([(60, card_top), (mid - 16, card_bottom)], radius=18, fill=bg_soft, outline=slate_border, width=2)
+    draw.text(((60 + mid - 16) // 2, card_top + 32), "DNI", fill=slate_muted, font=f_label, anchor="mm")
+    draw.text(((60 + mid - 16) // 2, card_top + 74), participante.dni, fill=navy, font=f_val, anchor="mm")
+
+    # Caja derecha: Código de Estudiante
+    codigo_mostrar = participante.codigo_alumno or "—"
+    draw.rounded_rectangle([(mid + 16, card_top), (W - 60, card_bottom)], radius=18, fill=bg_soft, outline=slate_border, width=2)
+    draw.text(((mid + 16 + W - 60) // 2, card_top + 32), "CÓDIGO DE ESTUDIANTE", fill=slate_muted, font=f_label, anchor="mm")
+    draw.text(((mid + 16 + W - 60) // 2, card_top + 74), codigo_mostrar, fill=navy, font=f_val, anchor="mm")
+
+    # Pie informativo con horarios
+    foot_top = H - 155
+    draw.line([(60, foot_top), (W - 60, foot_top)], fill=slate_border, width=2)
+    draw.text(
+        (W // 2, foot_top + 42),
+        "Mañana: 09:00 AM - 01:00 PM   |   Tarde: 03:00 PM - 07:00 PM",
+        fill=slate_dark,
+        font=f_foot_bold,
+        anchor="mm",
+    )
+    draw.text(
+        (W // 2, foot_top + 82),
+        "Pase personal e intransferible · Válido para ambos turnos del congreso",
+        fill=slate_muted,
+        font=f_foot,
+        anchor="mm",
+    )
+
+    buffer = io.BytesIO()
+    img.save(buffer, format="PNG", optimize=True)
+    return buffer.getvalue()
 
 
 def buscar_en_padron(dni: str = "", codigo_alumno: str = "") -> PadronMatriculado | None:

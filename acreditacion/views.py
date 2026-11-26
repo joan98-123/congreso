@@ -25,8 +25,8 @@ from .models import ConfiguracionEvento, LogAsistencia, PadronMatriculado, Parti
 from .utils import (
     buscar_en_padron,
     calcular_tarifa_backend,
+    generar_credencial_qr_png_bytes,
     generar_qr_base64,
-    generar_qr_png_bytes,
     generar_reporte_excel,
     generar_token_qr,
     importar_padron_desde_archivo,
@@ -275,7 +275,7 @@ def descargar_qr_png(request, token: str):
     if not participante:
         raise Http404("Pase QR no encontrado o no confirmado.")
 
-    png_bytes = generar_qr_png_bytes(participante.qr_token)
+    png_bytes = generar_credencial_qr_png_bytes(participante)
     response = HttpResponse(png_bytes, content_type="image/png")
     response["Content-Disposition"] = f'attachment; filename="Pase_Congreso_{participante.dni}.png"'
     response["Cache-Control"] = "no-store"
