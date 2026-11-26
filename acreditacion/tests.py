@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 
 import openpyxl
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.core.management import call_command
 from django.db import connection
 from django.test import Client, TestCase, override_settings
@@ -17,6 +18,7 @@ from django.urls import reverse
 from .models import ConfiguracionEvento, LogAsistencia, PadronMatriculado, Participante
 from .utils import (
     importar_padron_desde_archivo,
+    sanitizar_celda_excel,
     sincronizar_desde_google_sheet,
     verificar_firma_token_qr,
 )
@@ -24,9 +26,10 @@ from .utils import (
 LIMA_TZ = ZoneInfo("America/Lima")
 
 
-@override_settings(GOOGLE_SHEET_CSV_URL="")
+@override_settings(GOOGLE_SHEET_CSV_URL="", CONGRESO_ALLOW_PUBLIC_REGISTRATION=True)
 class CongresoSistemaTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.client = Client()
         self.admin_user = User.objects.create_superuser(
             username="admin_staff",
@@ -355,5 +358,41 @@ class CongresoSistemaTests(TestCase):
         self.assertFalse(Participante.objects.filter(dni="74569999").exists())
         self.assertFalse(Participante.objects.filter(dni="48315690").exists())
         self.assertFalse(Participante.objects.filter(dni="74568888").exists())
+
+    @override_settings(CONGRESO_ALLOW_PUBLIC_REGISTRATION=False)
+    def test_blindaje_owasp_cabeceras_rate_limit_y_excel_injection(self):
+        # 1. Registro público bloqueado cuando está deshabilitado en producción
+        r_reg = self.client.post(
+            reverse("api_registrar_participante"),
+            data=json.dumps({"dni": "71112222", "apellidos_nombres": "TEST ATTACK"}),
+            content_type="application/json",
+        )
+        self.assertEqual(r_reg.status_code, 403)
+
+        # 2. Cabeceras de seguridad presentes (CSP, Permissions-Policy, X-Frame-Options)
+        r_home = self.client.get(reverse("registro_pasos"))
+        self.assertIn("Content-Security-Policy", r_home)
+        self.assertIn("Permissions-Policy", r_home)
+        self.assertEqual(r_home["X-Frame-Options"], "DENY")
+
+        # 3. Usuario no-staff no puede acceder al panel admin
+        normal_user = User.objects.create_user(username="usuario_comun", password="UserPass2026!")
+        self.client.force_login(normal_user)
+        r_panel = self.client.get(reverse("dashboard"))
+        self.assertEqual(r_panel.status_code, 302)
+        self.client.logout()
+
+        # 4. Rate limiting en /login/ bloquea fuerza bruta (9no intento -> 429)
+        for _ in range(8):
+            r_try = self.client.post(reverse("login"), {"username": "admin", "password": "wrong"})
+            self.assertEqual(r_try.status_code, 200)
+        r_blocked = self.client.post(reverse("login"), {"username": "admin", "password": "wrong"})
+        self.assertEqual(r_blocked.status_code, 429)
+
+        # 5. Sanitización contra Excel Formula Injection
+        self.assertEqual(sanitizar_celda_excel("=CMD|' /C calc'!A0"), "'=CMD|' /C calc'!A0")
+        self.assertEqual(sanitizar_celda_excel("+SUM(A1:A2)"), "'+SUM(A1:A2)")
+        self.assertEqual(sanitizar_celda_excel("JUAN PEREZ"), "JUAN PEREZ")
+
 
 

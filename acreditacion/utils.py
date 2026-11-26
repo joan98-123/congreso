@@ -34,7 +34,15 @@ from .models import ConfiguracionEvento, LogAsistencia, PadronMatriculado, Parti
 
 QR_TOKEN_PREFIX = "CUNV1"
 _LAST_SHEET_SYNC_TS = 0.0
+_LAST_FORCED_SYNC_TS = 0.0
 _LAST_FALTAN_CANCELAR: list[dict] = []
+
+
+def sanitizar_celda_excel(valor):
+    """Previene CSV/Excel Formula Injection (OWASP) escapando prefijos peligrosos."""
+    if isinstance(valor, str) and valor and valor[0] in ("=", "+", "-", "@", "\t", "\r"):
+        return f"'{valor}"
+    return valor
 
 
 def obtener_faltan_cancelar() -> list[dict]:
@@ -754,7 +762,7 @@ def generar_reporte_excel() -> bytes:
             estado_cert,
         ]
         for c_idx, val in enumerate(vals, start=1):
-            cell = ws2.cell(row=r_idx, column=c_idx, value=val)
+            cell = ws2.cell(row=r_idx, column=c_idx, value=sanitizar_celda_excel(val))
             cell.font = normal_font
             cell.border = thin_border
             if c_idx == 5:
@@ -805,7 +813,7 @@ def generar_reporte_excel() -> bytes:
             log.mensaje,
         ]
         for c_idx, val in enumerate(vals, start=1):
-            cell = ws3.cell(row=r_idx, column=c_idx, value=val)
+            cell = ws3.cell(row=r_idx, column=c_idx, value=sanitizar_celda_excel(val))
             cell.font = normal_font
             cell.border = thin_border
             if c_idx == 3:
@@ -831,7 +839,7 @@ def sincronizar_desde_google_sheet(force: bool = False) -> dict:
     método de pago, y excluyendo a quienes tienen observación 'falta cancelar/pagar' hasta que cancelen).
     Nunca escribe ni modifica el Google Sheet.
     """
-    global _LAST_SHEET_SYNC_TS, _LAST_FALTAN_CANCELAR
+    global _LAST_SHEET_SYNC_TS, _LAST_FORCED_SYNC_TS, _LAST_FALTAN_CANCELAR
 
     url = getattr(settings, "GOOGLE_SHEET_CSV_URL", "")
     if not url:
@@ -839,6 +847,14 @@ def sincronizar_desde_google_sheet(force: bool = False) -> dict:
 
     intervalo = getattr(settings, "GOOGLE_SHEET_SYNC_INTERVAL", 30)
     ahora_ts = time_mod.monotonic()
+    if force and _LAST_FORCED_SYNC_TS and (ahora_ts - _LAST_FORCED_SYNC_TS) < 15:
+        return {
+            "ok": True,
+            "skipped": True,
+            "creados": 0,
+            "actualizados": 0,
+            "faltan_cancelar": list(_LAST_FALTAN_CANCELAR),
+        }
     if not force and _LAST_SHEET_SYNC_TS and (ahora_ts - _LAST_SHEET_SYNC_TS) < intervalo:
         return {
             "ok": True,
@@ -1009,7 +1025,10 @@ def sincronizar_desde_google_sheet(force: bool = False) -> dict:
             )
 
     _LAST_FALTAN_CANCELAR = faltan_cancelar
-    _LAST_SHEET_SYNC_TS = time_mod.monotonic()
+    now_mono = time_mod.monotonic()
+    _LAST_SHEET_SYNC_TS = now_mono
+    if force:
+        _LAST_FORCED_SYNC_TS = now_mono
     return {
         "ok": True,
         "skipped": False,

@@ -16,9 +16,9 @@ if os.environ.get("VERCEL"):
 
         User = get_user_model()
         admin_user = os.environ.get("DJANGO_ADMIN_USER", "admin")
-        admin_pass = os.environ.get("DJANGO_ADMIN_PASSWORD", "Congreso2026!")
+        admin_pass = os.environ.get("DJANGO_ADMIN_PASSWORD", "").strip()
         admin_email = os.environ.get("DJANGO_ADMIN_EMAIL", "admin@congreso.edu.pe")
-        if not User.objects.filter(username=admin_user).exists():
+        if admin_pass and not User.objects.filter(username=admin_user).exists():
             User.objects.create_superuser(
                 username=admin_user,
                 email=admin_email,

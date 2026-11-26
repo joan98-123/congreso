@@ -56,6 +56,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "acreditacion.middleware.SecurityHeadersMiddleware",
 ]
 
 ROOT_URLCONF = "congreso_project.urls"
@@ -130,6 +131,14 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+
+# Deshabilitar autoregistro público en producción (la web pública es solo consulta/descarga de QR)
+CONGRESO_ALLOW_PUBLIC_REGISTRATION = os.environ.get(
+    "CONGRESO_ALLOW_PUBLIC_REGISTRATION", "False"
+).lower() in ("1", "true", "yes")
 
 # Reglas de negocio del Congreso Universitario (centralizadas en backend)
 CONGRESO_CONFIG = {

@@ -9,8 +9,9 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth import login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
+from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
 from django.db.models import Q, Sum
@@ -56,6 +57,33 @@ def _parse_json_body(request):
         return None
 
 
+def _client_ip(request) -> str:
+    xff = (request.META.get("HTTP_X_FORWARDED_FOR") or "").split(",")[0].strip()
+    return xff or request.META.get("REMOTE_ADDR") or "unknown"
+
+
+def _rate_limit_excedido(request, scope: str, max_requests: int, window_seconds: int) -> bool:
+    """Rate limiting por IP usando Django cache (anti fuerza bruta y anti scraping)."""
+    key = f"rl:{scope}:{_client_ip(request)}"
+    count = cache.get(key)
+    if count is None:
+        cache.set(key, 1, timeout=window_seconds)
+        return False
+    if count >= max_requests:
+        return True
+    try:
+        cache.incr(key)
+    except ValueError:
+        cache.set(key, count + 1, timeout=window_seconds)
+    return False
+
+
+staff_required = user_passes_test(
+    lambda u: u.is_authenticated and u.is_staff,
+    login_url="/login/",
+)
+
+
 # =====================================================================
 # VISTAS PÚBLICAS (PARTICIPANTE / ESTUDIANTE SIN LOGIN)
 # =====================================================================
@@ -86,8 +114,13 @@ def registro_pasos_view(request):
 def api_consultar_padron(request):
     """
     Consulta en vivo si un DNI o Código pertenece al Padrón de Matriculados.
-    Calcula la tarifa exclusivamente en backend (S/ 60.00 vs S/ 40.00).
+    Deshabilitado en producción cuando CONGRESO_ALLOW_PUBLIC_REGISTRATION es False.
     """
+    if not getattr(settings, "CONGRESO_ALLOW_PUBLIC_REGISTRATION", False):
+        return JsonResponse({"ok": False, "error": "Consulta de padrón deshabilitada."}, status=403)
+    if _rate_limit_excedido(request, "padron", max_requests=25, window_seconds=60):
+        return JsonResponse({"ok": False, "error": "Demasiadas solicitudes. Espere un momento."}, status=429)
+
     dni = (request.GET.get("dni") or "").strip()
     codigo = (request.GET.get("codigo") or "").strip().upper()
 
@@ -140,8 +173,13 @@ def api_consultar_padron(request):
 def api_registrar_participante(request):
     """
     Paso 1 -> Paso 2: Crea el registro en estado PENDIENTE_PAGO.
-    El monto se calcula estrictamente en el backend consultando PadronMatriculado.
+    Deshabilitado en producción cuando CONGRESO_ALLOW_PUBLIC_REGISTRATION es False.
     """
+    if not getattr(settings, "CONGRESO_ALLOW_PUBLIC_REGISTRATION", False):
+        return JsonResponse({"ok": False, "error": "El registro público está deshabilitado."}, status=403)
+    if _rate_limit_excedido(request, "registro", max_requests=10, window_seconds=60):
+        return JsonResponse({"ok": False, "error": "Demasiadas solicitudes. Espere un momento."}, status=429)
+
     data = _parse_json_body(request)
     if data is None:
         return JsonResponse({"ok": False, "error": "Solicitud JSON inválida."}, status=400)
@@ -225,8 +263,14 @@ def api_registrar_participante(request):
 @require_GET
 def api_estado_participante(request, dni: str):
     """
-    Polling en tiempo real del Paso 2->3->4 y recuperación de Pase QR por DNI.
+    Consulta pública de Pase QR por DNI protegida con rate limiting por IP.
     """
+    if _rate_limit_excedido(request, "estado_dni", max_requests=25, window_seconds=60):
+        return JsonResponse(
+            {"ok": False, "error": "Demasiadas consultas seguidas. Intente nuevamente en 1 minuto."},
+            status=429,
+        )
+
     if not re.fullmatch(r"\d{8}", dni):
         return JsonResponse({"ok": False, "error": "El DNI debe tener 8 dígitos."}, status=400)
 
@@ -303,9 +347,22 @@ def login_view(request):
     if request.user.is_authenticated:
         return redirect("dashboard")
 
+    if request.method == "POST" and _rate_limit_excedido(request, "login", max_requests=8, window_seconds=900):
+        return render(
+            request,
+            "acreditacion/login.html",
+            {
+                "form": AuthenticationForm(request),
+                "congreso": settings.CONGRESO_CONFIG,
+                "rate_limited": True,
+            },
+            status=429,
+        )
+
     form = AuthenticationForm(request, data=request.POST or None)
     if request.method == "POST" and form.is_valid():
         login(request, form.get_user())
+        cache.delete(f"rl:login:{_client_ip(request)}")
         next_url = request.POST.get("next") or request.GET.get("next") or reverse("dashboard")
         # Evitar open redirect
         if not next_url.startswith("/") or next_url.startswith("//"):
@@ -331,7 +388,7 @@ def logout_view(request):
 # =====================================================================
 
 
-@login_required
+@staff_required
 @require_GET
 def dashboard_view(request):
     """Dashboard principal de administración con KPIs, cola de pagos y tabla de gestión."""
@@ -346,7 +403,7 @@ def dashboard_view(request):
     return render(request, "acreditacion/dashboard.html", context)
 
 
-@login_required
+@staff_required
 @require_GET
 def api_dashboard_data(request):
     """API en vivo para auto-refresco cada 5 segundos del dashboard con paginación."""
@@ -446,7 +503,7 @@ def api_dashboard_data(request):
     )
 
 
-@login_required
+@staff_required
 @require_POST
 def api_confirmar_pago(request, participante_id: int):
     """
@@ -501,7 +558,7 @@ def api_confirmar_pago(request, participante_id: int):
     )
 
 
-@login_required
+@staff_required
 @require_POST
 def api_anular_registro(request, participante_id: int):
     """Anula un registro (invalida su QR y libera el DNI para nueva inscripción)."""
@@ -525,7 +582,7 @@ def api_anular_registro(request, participante_id: int):
     )
 
 
-@login_required
+@staff_required
 @require_GET
 def api_admin_ver_qr(request, participante_id: int):
     """Permite al staff visualizar y descargar el QR de un participante pagado."""
@@ -553,7 +610,7 @@ def api_admin_ver_qr(request, participante_id: int):
     )
 
 
-@login_required
+@staff_required
 @require_POST
 def api_importar_padron(request):
     """Importa masivamente el padrón de matriculados (.csv, .xlsx o .db) desde el dashboard."""
@@ -582,7 +639,7 @@ def api_importar_padron(request):
     )
 
 
-@login_required
+@staff_required
 @require_POST
 def api_configurar_modo_prueba(request):
     """
@@ -630,7 +687,7 @@ def api_configurar_modo_prueba(request):
     )
 
 
-@login_required
+@staff_required
 @require_POST
 def api_sincronizar_sheet(request):
     """Sincroniza manualmente (solo lectura) los nuevos registros desde Google Sheets."""
@@ -652,7 +709,7 @@ def api_sincronizar_sheet(request):
     )
 
 
-@login_required
+@staff_required
 @require_GET
 def exportar_excel_view(request):
     """Exporta el reporte oficial multi-hoja del congreso en formato .xlsx."""
@@ -673,7 +730,7 @@ def exportar_excel_view(request):
 # =====================================================================
 
 
-@login_required
+@staff_required
 @require_GET
 def escaner_view(request):
     """Vista optimizada para celulares del staff en puerta con escáner html5-qrcode."""
@@ -686,7 +743,7 @@ def escaner_view(request):
     return render(request, "acreditacion/escaner.html", context)
 
 
-@login_required
+@staff_required
 @require_POST
 def api_escanear_qr(request):
     """
