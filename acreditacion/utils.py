@@ -183,45 +183,67 @@ def _envolver_texto(draw: ImageDraw.ImageDraw, texto: str, font, max_width: int)
 
 def generar_credencial_qr_png_bytes(participante: Participante) -> bytes:
     """
-    Genera una credencial digital completa en PNG de alta resolución (900x1260)
-    que incluye el QR único, Nombres y Apellidos, DNI, Código de Estudiante
-    y los horarios oficiales del congreso.
+    Genera una credencial digital completa en PNG de alta resolución (900x1280)
+    con la identidad visual de Congreso CIMA 2026 (guinda/carmesí y dorado),
+    incluyendo el logotipo oficial, QR único, Nombres y Apellidos, DNI,
+    Código de Estudiante y horarios oficiales.
     """
-    W, H = 900, 1260
-    navy = (15, 23, 42)
-    slate_dark = (30, 41, 59)
-    slate_muted = (100, 116, 139)
-    slate_border = (203, 213, 225)
-    bg_soft = (248, 250, 252)
-    gold = (197, 155, 39)
+    W, H = 900, 1280
+    burgundy_dark = (74, 5, 17)     # #4a0511
+    burgundy = (122, 13, 30)        # #7a0d1e
+    crimson = (163, 22, 44)         # #a3162c
+    gold = (212, 146, 30)           # #d4921e
+    gold_light = (245, 200, 92)     # #f5c85c
+    slate_muted = (110, 88, 92)
+    border_soft = (226, 204, 207)
+    bg_cream = (252, 248, 247)
     white = (255, 255, 255)
 
     img = Image.new("RGB", (W, H), white)
     draw = ImageDraw.Draw(img)
 
-    # Marco exterior sutil
-    draw.rounded_rectangle([(20, 20), (W - 20, H - 20)], radius=32, fill=white, outline=navy, width=6)
-
-    # Cabecera institucional azul marino + línea dorada
-    draw.rounded_rectangle([(23, 23), (W - 23, 220)], radius=28, fill=navy)
-    draw.rectangle([(23, 185), (W - 23, 220)], fill=navy)
-    draw.rectangle([(23, 220), (W - 23, 230)], fill=gold)
+    # Marco exterior guinda + marco interior dorado fino
+    draw.rounded_rectangle([(18, 18), (W - 18, H - 18)], radius=32, fill=white, outline=burgundy, width=7)
+    draw.rounded_rectangle([(30, 30), (W - 30, H - 30)], radius=24, fill=white, outline=gold, width=2)
 
     f_tag = _cargar_fuente(22, bold=True)
-    f_title = _cargar_fuente(38, bold=True)
-    f_sub = _cargar_fuente(22, bold=False)
     f_name = _cargar_fuente(34, bold=True)
-    f_label = _cargar_fuente(20, bold=True)
-    f_val = _cargar_fuente(30, bold=True)
+    f_label = _cargar_fuente(19, bold=True)
+    f_val = _cargar_fuente(31, bold=True)
     f_foot_bold = _cargar_fuente(21, bold=True)
-    f_foot = _cargar_fuente(19, bold=False)
+    f_foot = _cargar_fuente(18, bold=False)
 
-    evento = settings.CONGRESO_CONFIG.get("NOMBRE_EVENTO", "Congreso Universitario 2026").upper()
-    draw.text((W // 2, 62), "CREDENCIAL OFICIAL · PASE DIGITAL", fill=gold, font=f_tag, anchor="mm")
-    draw.text((W // 2, 122), evento, fill=white, font=f_title, anchor="mm")
-    draw.text((W // 2, 174), "CONTROL DE ASISTENCIA QR", fill=(203, 213, 225), font=f_sub, anchor="mm")
+    # Cabecera blanca con el logotipo oficial de Congreso CIMA 2026
+    logo_path = settings.BASE_DIR / "acreditacion" / "assets" / "logo_cima.jpg"
+    ribbon_top = 215
+    if logo_path.exists():
+        try:
+            logo = Image.open(logo_path).convert("RGB")
+            max_lw, max_lh = 560, 155
+            logo.thumbnail((max_lw, max_lh), Image.Resampling.LANCZOS)
+            lx = (W - logo.width) // 2
+            ly = 48 + (max_lh - logo.height) // 2
+            img.paste(logo, (lx, ly))
+        except Exception:
+            f_title = _cargar_fuente(42, bold=True)
+            draw.text((W // 2, 125), "CONGRESO CIMA 2026", fill=burgundy, font=f_title, anchor="mm")
+    else:
+        f_title = _cargar_fuente(42, bold=True)
+        draw.text((W // 2, 125), "CONGRESO CIMA 2026", fill=burgundy, font=f_title, anchor="mm")
 
-    # Generar imagen QR nítida y pegarla centrada
+    # Cinta institucional guinda con bordes dorados
+    draw.rectangle([(31, ribbon_top), (W - 31, ribbon_top + 6)], fill=gold)
+    draw.rectangle([(31, ribbon_top + 6), (W - 31, ribbon_top + 60)], fill=burgundy_dark)
+    draw.rectangle([(31, ribbon_top + 60), (W - 31, ribbon_top + 65)], fill=gold)
+    draw.text(
+        (W // 2, ribbon_top + 33),
+        "CREDENCIAL OFICIAL  ·  PASE DIGITAL DE ASISTENCIA",
+        fill=gold_light,
+        font=f_tag,
+        anchor="mm",
+    )
+
+    # Generar código QR en guinda muy oscuro (#31040b) sobre blanco (alto contraste > 16:1)
     qr = qrcode.QRCode(
         version=None,
         error_correction=ERROR_CORRECT_M,
@@ -230,58 +252,58 @@ def generar_credencial_qr_png_bytes(participante: Participante) -> bytes:
     )
     qr.add_data(participante.qr_token)
     qr.make(fit=True)
-    qr_img = qr.make_image(fill_color="#0f172a", back_color="#ffffff").convert("RGB")
-    qr_size = 500
+    qr_img = qr.make_image(fill_color="#31040b", back_color="#ffffff").convert("RGB")
+    qr_size = 480
     qr_img = qr_img.resize((qr_size, qr_size), Image.Resampling.NEAREST)
 
-    qr_box_top = 268
+    qr_box_top = 318
     qr_box_left = (W - qr_size) // 2
     draw.rounded_rectangle(
         [(qr_box_left - 22, qr_box_top - 22), (qr_box_left + qr_size + 22, qr_box_top + qr_size + 22)],
         radius=24,
         fill=white,
-        outline=slate_border,
-        width=3,
+        outline=gold,
+        width=4,
     )
     img.paste(qr_img, (qr_box_left, qr_box_top))
 
-    # Nombres y Apellidos (con salto de línea automático si es extenso)
-    y_cursor = qr_box_top + qr_size + 62
+    # Nombres y Apellidos
+    y_cursor = qr_box_top + qr_size + 58
     lineas_nombre = _envolver_texto(draw, participante.apellidos_nombres.upper(), f_name, W - 120)
     for linea in lineas_nombre[:2]:
-        draw.text((W // 2, y_cursor), linea, fill=navy, font=f_name, anchor="mm")
+        draw.text((W // 2, y_cursor), linea, fill=burgundy_dark, font=f_name, anchor="mm")
         y_cursor += 44
 
-    # Cajas de DNI y Código de Estudiante
-    card_top = max(y_cursor + 18, 920)
-    card_bottom = card_top + 110
+    # Cajas de DNI y Código de Estudiante con acentos CIMA
+    card_top = max(y_cursor + 18, 945)
+    card_bottom = card_top + 112
     mid = W // 2
 
-    # Caja izquierda: DNI
-    draw.rounded_rectangle([(60, card_top), (mid - 16, card_bottom)], radius=18, fill=bg_soft, outline=slate_border, width=2)
-    draw.text(((60 + mid - 16) // 2, card_top + 32), "DNI", fill=slate_muted, font=f_label, anchor="mm")
-    draw.text(((60 + mid - 16) // 2, card_top + 74), participante.dni, fill=navy, font=f_val, anchor="mm")
+    draw.rounded_rectangle([(62, card_top), (mid - 16, card_bottom)], radius=18, fill=bg_cream, outline=border_soft, width=3)
+    draw.text(((62 + mid - 16) // 2, card_top + 32), "DNI", fill=crimson, font=f_label, anchor="mm")
+    draw.text(((62 + mid - 16) // 2, card_top + 76), participante.dni, fill=burgundy_dark, font=f_val, anchor="mm")
 
-    # Caja derecha: Código de Estudiante
     codigo_mostrar = participante.codigo_alumno or "—"
-    draw.rounded_rectangle([(mid + 16, card_top), (W - 60, card_bottom)], radius=18, fill=bg_soft, outline=slate_border, width=2)
-    draw.text(((mid + 16 + W - 60) // 2, card_top + 32), "CÓDIGO DE ESTUDIANTE", fill=slate_muted, font=f_label, anchor="mm")
-    draw.text(((mid + 16 + W - 60) // 2, card_top + 74), codigo_mostrar, fill=navy, font=f_val, anchor="mm")
+    draw.rounded_rectangle([(mid + 16, card_top), (W - 62, card_bottom)], radius=18, fill=bg_cream, outline=border_soft, width=3)
+    draw.text(((mid + 16 + W - 62) // 2, card_top + 32), "CÓDIGO DE ESTUDIANTE", fill=crimson, font=f_label, anchor="mm")
+    draw.text(((mid + 16 + W - 62) // 2, card_top + 76), codigo_mostrar, fill=burgundy_dark, font=f_val, anchor="mm")
 
-    # Pie informativo con horarios
-    foot_top = H - 155
-    draw.line([(60, foot_top), (W - 60, foot_top)], fill=slate_border, width=2)
+    # Banda inferior guinda con horarios en dorado
+    foot_top = H - 150
+    draw.rounded_rectangle([(31, foot_top), (W - 31, H - 31)], radius=20, fill=burgundy_dark)
+    draw.rectangle([(31, foot_top), (W - 31, foot_top + 24)], fill=burgundy_dark)
+    draw.rectangle([(31, foot_top), (W - 31, foot_top + 5)], fill=gold)
     draw.text(
-        (W // 2, foot_top + 42),
+        (W // 2, foot_top + 44),
         "Mañana: 09:00 AM - 01:00 PM   |   Tarde: 03:00 PM - 07:00 PM",
-        fill=slate_dark,
+        fill=gold_light,
         font=f_foot_bold,
         anchor="mm",
     )
     draw.text(
-        (W // 2, foot_top + 82),
-        "Pase personal e intransferible · Válido para ambos turnos del congreso",
-        fill=slate_muted,
+        (W // 2, foot_top + 84),
+        "Pase personal e intransferible · Válido para ambos turnos · Congreso CIMA 2026",
+        fill=(242, 224, 227),
         font=f_foot,
         anchor="mm",
     )

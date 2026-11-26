@@ -62,6 +62,17 @@ def _parse_json_body(request):
 
 
 @require_GET
+def logo_cima_view(request):
+    """Sirve el logotipo oficial de Congreso CIMA 2026 con caché HTTP."""
+    logo_path = settings.BASE_DIR / "acreditacion" / "assets" / "logo_cima.jpg"
+    if not logo_path.exists():
+        raise Http404("Logo no encontrado.")
+    response = HttpResponse(logo_path.read_bytes(), content_type="image/jpeg")
+    response["Cache-Control"] = "public, max-age=86400"
+    return response
+
+
+@require_GET
 def registro_pasos_view(request):
     """Vista pública principal con Stepper UI de 4 pasos y modal de recuperación QR."""
     context = {

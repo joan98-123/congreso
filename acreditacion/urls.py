@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     # Público (Participante / Estudiante)
     path("", views.registro_pasos_view, name="registro_pasos"),
+    path("branding/logo-cima.jpg", views.logo_cima_view, name="logo_cima"),
     path("api/publico/consultar-padron/", views.api_consultar_padron, name="api_consultar_padron"),
     path("api/publico/registrar/", views.api_registrar_participante, name="api_registrar_participante"),
     path("api/publico/estado/<str:dni>/", views.api_estado_participante, name="api_estado_participante"),

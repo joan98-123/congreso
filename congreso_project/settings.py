@@ -133,7 +133,7 @@ if not DEBUG:
 
 # Reglas de negocio del Congreso Universitario (centralizadas en backend)
 CONGRESO_CONFIG = {
-    "NOMBRE_EVENTO": "Congreso Universitario 2026",
+    "NOMBRE_EVENTO": "Congreso CIMA 2026",
     "SUBTITULO_EVENTO": "Acreditación Oficial y Control de Asistencia",
     "TARIFA_MATRICULADO": "60.00",
     "TARIFA_EXTERNO": "40.00",

@@ -3,16 +3,21 @@
 
 {% block content %}
 <div class="max-w-xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
-    <!-- Encabezado -->
+    <!-- Encabezado con Identidad Congreso CIMA 2026 -->
     <div class="text-center mb-8">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-navy-900 text-amber-300 mb-3">
-            Credencial Digital del Congreso
-        </span>
-        <h1 class="font-serif text-2xl sm:text-3xl font-bold text-navy-900">
+        <div class="inline-block bg-white px-6 py-4 rounded-2xl border border-rose-900/15 shadow-sm mb-4">
+            <img src="{% url 'logo_cima' %}" alt="Congreso CIMA 2026" class="h-20 sm:h-24 w-auto mx-auto object-contain">
+        </div>
+        <div>
+            <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-navy-900 to-navy-700 text-amber-300 shadow-sm mb-2">
+                Credencial Digital Oficial
+            </span>
+        </div>
+        <h1 class="font-serif text-2xl sm:text-3xl font-extrabold text-navy-900">
             Consultar y Descargar mi Pase QR
         </h1>
         <p class="text-sm text-slate-600 mt-2">
-            Ingrese su número de DNI (8 dígitos) para visualizar y descargar su código QR personal de ingreso.
+            Ingrese su número de DNI (8 dígitos) para visualizar y descargar su credencial completa con QR.
         </p>
     </div>
 
@@ -41,17 +46,17 @@
         </form>
     </div>
 
-    <!-- Resultado: Credencial Digital QR -->
+    <!-- Resultado: Credencial Digital QR Estilo CIMA 2026 -->
     <section id="seccionCredencial" class="hidden mt-6 fade-in">
-        <div class="rounded-2xl border-2 border-navy-900 overflow-hidden shadow-lg bg-white">
-            <div class="bg-navy-900 text-white px-5 py-4 flex items-center justify-between">
-                <div>
-                    <div class="text-[10px] uppercase tracking-widest text-amber-300 font-semibold">Credencial Oficial</div>
-                    <div class="font-serif font-bold text-base">{{ congreso.NOMBRE_EVENTO }}</div>
-                </div>
-                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+        <div class="rounded-2xl border-2 border-navy-900 overflow-hidden shadow-xl bg-white">
+            <div class="bg-white px-5 pt-4 pb-3 border-b-4 border-amber-500 flex items-center justify-between gap-3">
+                <img src="{% url 'logo_cima' %}" alt="Congreso CIMA 2026" class="h-12 w-auto object-contain">
+                <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-gradient-to-r from-navy-900 to-navy-700 text-amber-300 shadow-sm">
                     PASE ACTIVO
                 </span>
+            </div>
+            <div class="bg-gradient-to-r from-navy-950 via-navy-900 to-navy-800 text-amber-300 text-center py-1.5 text-[11px] font-bold uppercase tracking-widest">
+                Credencial Oficial · Control de Asistencia
             </div>
 
             <div class="p-6 text-center">

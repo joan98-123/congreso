@@ -144,7 +144,7 @@ class CongresoSistemaTests(TestCase):
         self.assertEqual(res_png["Content-Type"], "image/png")
         from PIL import Image
         img_card = Image.open(io.BytesIO(res_png.content))
-        self.assertEqual(img_card.size, (900, 1260))
+        self.assertEqual(img_card.size, (900, 1280))
 
         # Token alterado debe ser rechazado
         tampered = p.qr_token[:-4] + "0000"
