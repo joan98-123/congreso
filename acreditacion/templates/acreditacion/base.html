@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}{{ congreso.NOMBRE_EVENTO }}{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['Playfair Display', 'Georgia', 'serif'],
+                    },
+                    colors: {
+                        navy: {
+                            950: '#090f1d',
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            700: '#334155',
+                        },
+                        gold: {
+                            500: '#c59b27',
+                            600: '#a67c15',
+                            100: '#fef9e7',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .fade-in { animation: fadeIn 0.25s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-full flex flex-col text-slate-800 antialiased">
+    <!-- Barra de Navegación Superior -->
+    <header class="bg-navy-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <a href="{% url 'registro_pasos' %}" class="flex items-center gap-3 group">
+                    <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-navy-950 font-serif font-bold text-lg shadow">
+                        C
+                    </div>
+                    <div class="leading-tight">
+                        <div class="font-serif font-semibold text-base sm:text-lg tracking-tight text-white group-hover:text-amber-300 transition">
+                            {{ congreso.NOMBRE_EVENTO }}
+                        </div>
+                        <div class="text-[11px] uppercase tracking-widest text-slate-400 hidden sm:block">
+                            {{ congreso.SUBTITULO_EVENTO }}
+                        </div>
+                    </div>
+                </a>
+
+                <nav class="flex items-center gap-2 sm:gap-3">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}"
+                           class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition {% if request.resolver_match.url_name == 'dashboard' %}bg-amber-500/20 text-amber-300 border border-amber-500/40{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                            Dashboard
+                        </a>
+                        <a href="{% url 'escaner' %}"
+                           class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition {% if request.resolver_match.url_name == 'escaner' %}bg-emerald-500/20 text-emerald-300 border border-emerald-500/40{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                            Escáner QR
+                        </a>
+                        <form method="post" action="{% url 'logout' %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-slate-300 hover:bg-rose-900/50 hover:text-rose-200 border border-slate-700 transition">
+                                Salir ({{ user.username }})
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}"
+                           class="px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-slate-200 hover:text-white border border-slate-700 hover:border-slate-500 transition">
+                            Acceso Staff
+                        </a>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Pie de página institucional -->
+    <footer class="bg-white border-t border-slate-200 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+            <span>{{ congreso.NOMBRE_EVENTO }} &middot; Sistema Oficial de Acreditación y Control de Asistencia</span>
+            <span>Horarios de Marcación: Mañana (09:00 - 13:00) &middot; Tarde (15:00 - 19:00) &middot; Hora Lima (UTC-5)</span>
+        </div>
+    </footer>
+
+    <!-- Utilidades JS globales (CSRF seguro y escape XSS) -->
+    <script>
+        function getCsrfToken() {
+            const meta = document.querySelector('meta[name="csrf-token"]');
+            if (meta && meta.content) return meta.content;
+            const match = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+            return match ? decodeURIComponent(match[1]) : '';
+        }
+
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

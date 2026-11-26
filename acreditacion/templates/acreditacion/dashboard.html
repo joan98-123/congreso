@@ -1,0 +1,525 @@
+{% extends "acreditacion/base.html" %}
+{% block title %}Dashboard de Control | {{ congreso.NOMBRE_EVENTO }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+    <!-- Toast de Notificación en Vivo -->
+    <div id="toastNotificacion" class="fixed bottom-5 right-5 z-50 hidden max-w-sm bg-navy-900 text-white px-4 py-3 rounded-xl shadow-xl border border-amber-500/40 text-sm fade-in"></div>
+
+    <!-- Encabezado y Acciones Principales -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+        <div>
+            <h1 class="font-serif text-2xl sm:text-3xl font-bold text-navy-900">Panel de Control del Congreso</h1>
+            <div class="flex flex-wrap items-center gap-2 mt-1.5 text-xs">
+                <span id="badgeBloqueHorario" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-semibold bg-slate-200 text-slate-800">
+                    {{ bloque.etiqueta }}
+                </span>
+                <span class="text-slate-500">Hora Servidor (Lima): <strong id="relojServidor" class="text-navy-900">--:--:--</strong></span>
+                <span class="text-slate-400">&middot;</span>
+                <span class="text-slate-500">Padrón cargado: <strong id="kpiPadron" class="text-navy-900">{{ total_padron }}</strong> alumnos</span>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2.5">
+            <a href="{% url 'escaner' %}"
+               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold shadow-sm transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/>
+                </svg>
+                Abrir Escáner QR
+            </a>
+            <button type="button" id="btnAbrirPadron"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-navy-900 text-sm font-semibold shadow-sm transition">
+                Cargar Padrón
+            </button>
+            <button type="button" id="btnAbrirModoPrueba"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-amber-300 hover:bg-amber-50 text-amber-900 text-sm font-semibold shadow-sm transition">
+                Modo Prueba
+            </button>
+            <a href="{% url 'exportar_excel' %}"
+               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-navy-900 hover:bg-navy-800 text-white text-sm font-semibold shadow-sm transition">
+                Exportar Excel (.xlsx)
+            </a>
+        </div>
+    </div>
+
+    <!-- KPIs en Vivo -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 mb-6">
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total Recaudado</div>
+            <div id="kpiRecaudado" class="text-2xl font-bold text-navy-900 mt-1">S/ 0.00</div>
+            <div class="text-[11px] text-slate-500 mt-1"><span id="kpiTotalPagados">0</span> pagos confirmados</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Tarifa S/ 60 vs S/ 40</div>
+            <div class="text-xl font-bold text-navy-900 mt-1">
+                <span id="kpiMat">0</span> <span class="text-slate-300">/</span> <span id="kpiExt">0</span>
+            </div>
+            <div class="text-[11px] text-slate-500 mt-1">Matriculados / Externos</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Turno Mañana</div>
+            <div id="kpiManana" class="text-2xl font-bold text-emerald-700 mt-1">0</div>
+            <div class="text-[11px] text-slate-500 mt-1">09:00 AM - 01:00 PM</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Turno Tarde</div>
+            <div id="kpiTarde" class="text-2xl font-bold text-blue-700 mt-1">0</div>
+            <div class="text-[11px] text-slate-500 mt-1">03:00 PM - 07:00 PM</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Asistencia 100%</div>
+            <div id="kpiCompleta" class="text-2xl font-bold text-amber-600 mt-1">0</div>
+            <div class="text-[11px] text-slate-500 mt-1">Ambos turnos</div>
+        </div>
+        <div class="bg-white rounded-2xl border border-amber-300 bg-amber-50/40 p-4 shadow-sm">
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-amber-800">Pagos Pendientes</div>
+            <div id="kpiPendientes" class="text-2xl font-bold text-amber-700 mt-1">0</div>
+            <div class="text-[11px] text-amber-700 mt-1">Auto-refresco cada 5s</div>
+        </div>
+    </div>
+
+    <!-- Cola en Tiempo Real de Pagos Pendientes por Validar -->
+    <section class="bg-white rounded-2xl border border-amber-200 shadow-sm mb-6 overflow-hidden">
+        <div class="px-5 py-4 bg-amber-50/70 border-b border-amber-200 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                <h2 class="font-bold text-navy-900 text-base">Solicitudes Pendientes de Validación de Pago</h2>
+            </div>
+            <span class="text-xs text-amber-800 font-medium">Actualización automática cada 5s</span>
+        </div>
+        <div id="contenedorPendientes" class="p-4">
+            <p class="text-sm text-slate-500 text-center py-4">Cargando solicitudes pendientes...</p>
+        </div>
+    </section>
+
+    <!-- Tabla de Gestión General de Participantes -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div class="relative flex-1 max-w-md">
+                <input type="text" id="inputBuscar" placeholder="Buscar por DNI, Apellidos y Nombres o Código..."
+                       class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-navy-900 outline-none text-sm">
+                <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
+                </svg>
+            </div>
+            <div class="flex flex-wrap gap-1.5" id="filtrosEstado">
+                <button type="button" data-estado="TODOS" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-navy-900 text-white">Todos</button>
+                <button type="button" data-estado="PENDIENTE_PAGO" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Pendientes</button>
+                <button type="button" data-estado="PAGADO" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Pagados</button>
+                <button type="button" data-estado="COMPLETA" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Completa 100%</button>
+                <button type="button" data-estado="PARCIAL" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Parcial 50%</button>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 text-sm">
+                <thead class="bg-slate-50 text-xs uppercase text-slate-500 font-semibold">
+                    <tr>
+                        <th class="px-4 py-3 text-left">Participante</th>
+                        <th class="px-4 py-3 text-left">DNI / Código</th>
+                        <th class="px-4 py-3 text-left">Tarifa</th>
+                        <th class="px-4 py-3 text-left">Pago</th>
+                        <th class="px-4 py-3 text-center">Asistencia Mañana / Tarde</th>
+                        <th class="px-4 py-3 text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaParticipantes" class="divide-y divide-slate-100 bg-white">
+                    <tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">Cargando registros...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<!-- Modal: Ver / Descargar QR de Participante -->
+<div id="modalVerQr" class="fixed inset-0 z-50 hidden bg-navy-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-200 text-center fade-in">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-navy-900">Pase Digital QR</h3>
+            <button type="button" id="btnCerrarQr" class="text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+        </div>
+        <img id="modalQrImg" src="" alt="QR" class="w-52 h-52 mx-auto border border-slate-200 rounded-xl p-2">
+        <div id="modalQrNombre" class="mt-3 font-bold text-navy-900 text-sm"></div>
+        <div id="modalQrDni" class="text-xs text-slate-500 mt-0.5"></div>
+        <a id="modalQrDownload" href="#" download
+           class="mt-4 block w-full py-2.5 rounded-xl bg-navy-900 hover:bg-navy-800 text-white text-sm font-semibold transition">
+            Descargar PNG
+        </a>
+    </div>
+</div>
+
+<!-- Modal: Importar Padrón de Matriculados -->
+<div id="modalPadron" class="fixed inset-0 z-50 hidden bg-navy-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200 fade-in">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="font-serif text-lg font-bold text-navy-900">Importar Padrón de Matriculados</h3>
+            <button type="button" id="btnCerrarPadron" class="text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+        </div>
+        <p class="text-xs text-slate-600 mb-4">
+            Suba un archivo <strong>.csv</strong>, <strong>.xlsx</strong> o <strong>.db/.sqlite3</strong> con las columnas:
+            <code>codigo_alumno</code>, <code>dni</code> y <code>apellidos_nombres</code>.
+        </p>
+        <div id="resultadoPadron" class="hidden mb-4 p-3 rounded-xl text-xs border"></div>
+        <form id="formPadron" class="space-y-4">
+            {% csrf_token %}
+            <input type="file" id="inputArchivoPadron" name="archivo" accept=".csv,.xlsx,.xlsm,.db,.sqlite,.sqlite3" required
+                   class="block w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-navy-900 file:text-white hover:file:bg-navy-800">
+            <button type="submit" id="btnSubirPadron"
+                    class="w-full py-2.5 rounded-xl bg-navy-900 hover:bg-navy-800 text-white text-sm font-semibold transition">
+                Importar Padrón
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Modo Prueba / Override de Horario (Protegido por contraseña Admin) -->
+<div id="modalModoPrueba" class="fixed inset-0 z-50 hidden bg-navy-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-amber-200 fade-in">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="font-serif text-lg font-bold text-navy-900">Modo Prueba / Override de Horario</h3>
+            <button type="button" id="btnCerrarModoPrueba" class="text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+        </div>
+        <p class="text-xs text-slate-600 mb-4">
+            Permite simular un turno horario para probar el escáner antes del congreso. Desactívelo durante el evento real. Requiere su contraseña de administrador.
+        </p>
+        <div id="alertaModoPrueba" class="hidden mb-3 p-3 rounded-xl text-xs border"></div>
+        <form id="formModoPrueba" class="space-y-4">
+            <label class="flex items-center gap-2.5 text-sm font-semibold text-navy-900 cursor-pointer">
+                <input type="checkbox" id="chkModoPrueba" {% if config_evento.modo_prueba_activo %}checked{% endif %}
+                       class="w-4 h-4 rounded text-navy-900">
+                Activar Override de Horario (Modo Prueba)
+            </label>
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Turno Simulado</label>
+                <select id="selectTurnoSimulado" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+                    {% for val, lbl in turno_choices %}
+                        <option value="{{ val }}" {% if config_evento.turno_simulado == val %}selected{% endif %}>{{ lbl }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Contraseña del Administrador Actual</label>
+                <input type="password" id="inputAdminPass" required placeholder="Confirme su contraseña"
+                       class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm">
+            </div>
+            <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold transition">
+                Guardar Configuración
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+    let filtroEstado = 'TODOS';
+    let busqueda = '';
+    let prevPendientesCount = null;
+    let searchTimer = null;
+
+    function mostrarToast(msg, tipo = 'info') {
+        const toast = document.getElementById('toastNotificacion');
+        toast.textContent = msg;
+        toast.classList.remove('hidden', 'bg-navy-900', 'bg-emerald-800', 'bg-rose-800');
+        toast.classList.add(tipo === 'success' ? 'bg-emerald-800' : tipo === 'error' ? 'bg-rose-800' : 'bg-navy-900');
+        setTimeout(() => toast.classList.add('hidden'), 4500);
+    }
+
+    async function cargarDashboard() {
+        try {
+            const params = new URLSearchParams({ q: busqueda, estado: filtroEstado });
+            const res = await fetch(`{% url 'api_dashboard_data' %}?${params.toString()}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!data.ok) return;
+
+            // KPIs
+            const k = data.kpis;
+            document.getElementById('kpiRecaudado').textContent = `S/ ${k.total_recaudado}`;
+            document.getElementById('kpiTotalPagados').textContent = k.total_pagados;
+            document.getElementById('kpiMat').textContent = k.matriculados_pagados;
+            document.getElementById('kpiExt').textContent = k.externos_pagados;
+            document.getElementById('kpiManana').textContent = k.asist_manana;
+            document.getElementById('kpiTarde').textContent = k.asist_tarde;
+            document.getElementById('kpiCompleta').textContent = k.asist_completa;
+            document.getElementById('kpiPendientes').textContent = k.pendientes_pago;
+            document.getElementById('kpiPadron').textContent = k.total_padron;
+
+            // Notificación visual si llegó un nuevo pago pendiente
+            if (prevPendientesCount !== null && k.pendientes_pago > prevPendientesCount) {
+                mostrarToast(`Nueva solicitud de pago en puerta (${k.pendientes_pago} pendientes).`, 'info');
+            }
+            prevPendientesCount = k.pendientes_pago;
+
+            // Bloque y hora servidor
+            const b = data.bloque_actual;
+            document.getElementById('relojServidor').textContent = `${b.hora_servidor} (${b.fecha_servidor})`;
+            const badge = document.getElementById('badgeBloqueHorario');
+            badge.textContent = b.etiqueta;
+            badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-semibold ' + (
+                b.modo_prueba
+                    ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                    : b.bloque === 'FUERA'
+                        ? 'bg-slate-200 text-slate-700'
+                        : 'bg-emerald-100 text-emerald-800'
+            );
+
+            renderPendientes(data.pendientes);
+            renderTabla(data.participantes);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function renderPendientes(lista) {
+        const cont = document.getElementById('contenedorPendientes');
+        if (!lista.length) {
+            cont.innerHTML = '<p class="text-sm text-slate-500 text-center py-4">No hay pagos pendientes por validar en este momento.</p>';
+            return;
+        }
+        cont.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">' + lista.map(p => `
+            <div class="p-4 rounded-xl border border-amber-200 bg-amber-50/30 flex flex-col justify-between gap-3">
+                <div>
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="font-bold text-navy-900 text-sm leading-snug">${escapeHtml(p.apellidos_nombres)}</div>
+                        <span class="px-2 py-0.5 rounded-lg text-xs font-bold bg-navy-900 text-amber-300 shrink-0">S/ ${escapeHtml(p.monto_pagar)}</span>
+                    </div>
+                    <div class="text-xs text-slate-600 mt-1">
+                        DNI: <strong>${escapeHtml(p.dni)}</strong> &middot; Cód: <strong>${escapeHtml(p.codigo_alumno)}</strong>
+                    </div>
+                    <div class="text-[11px] text-slate-500 mt-0.5">
+                        ${p.es_matriculado ? 'Alumno Matriculado' : 'Externo / General'} &middot; Registrado ${escapeHtml(p.fecha_registro)}
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="confirmarPago(${p.id})"
+                            class="flex-1 py-2 px-3 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition">
+                        ✔ Confirmar Pago
+                    </button>
+                    <button type="button" onclick="anularRegistro(${p.id}, '${escapeHtml(p.dni)}')"
+                            class="py-2 px-2.5 rounded-lg bg-white border border-rose-200 text-rose-700 hover:bg-rose-50 text-xs font-semibold transition">
+                        Anular
+                    </button>
+                </div>
+            </div>
+        `).join('') + '</div>';
+    }
+
+    function renderTabla(lista) {
+        const tbody = document.getElementById('tablaParticipantes');
+        if (!lista.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">No se encontraron participantes con los filtros aplicados.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = lista.map(p => {
+            const badgePago = p.estado_pago === 'PAGADO'
+                ? `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">Pagado</span>`
+                : `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">Pendiente</span>`;
+
+            const badgeM = p.asistencia_manana
+                ? `<span title="Hora: ${escapeHtml(p.hora_manana)}" class="px-2 py-0.5 rounded-md text-xs font-semibold bg-emerald-100 text-emerald-800">Mañana: ✔</span>`
+                : `<span class="px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-500">Mañana: ✘</span>`;
+
+            const badgeT = p.asistencia_tarde
+                ? `<span title="Hora: ${escapeHtml(p.hora_tarde)}" class="px-2 py-0.5 rounded-md text-xs font-semibold bg-blue-100 text-blue-800">Tarde: ✔</span>`
+                : `<span class="px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-500">Tarde: ✘</span>`;
+
+            const acciones = p.tiene_qr
+                ? `<button type="button" onclick="verQr(${p.id})" class="px-2.5 py-1 rounded-lg bg-navy-900 hover:bg-navy-800 text-white text-xs font-semibold mr-1">Ver QR</button>
+                   <button type="button" onclick="anularRegistro(${p.id}, '${escapeHtml(p.dni)}')" class="px-2 py-1 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 text-xs font-semibold">Anular</button>`
+                : `<button type="button" onclick="confirmarPago(${p.id})" class="px-2.5 py-1 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold mr-1">Confirmar</button>
+                   <button type="button" onclick="anularRegistro(${p.id}, '${escapeHtml(p.dni)}')" class="px-2 py-1 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 text-xs font-semibold">Anular</button>`;
+
+            return `
+                <tr class="hover:bg-slate-50/70 transition">
+                    <td class="px-4 py-3">
+                        <div class="font-semibold text-navy-900">${escapeHtml(p.apellidos_nombres)}</div>
+                        <div class="text-[11px] text-slate-500">${escapeHtml(p.estado_certificacion)}</div>
+                    </td>
+                    <td class="px-4 py-3 text-xs">
+                        <div class="font-semibold text-slate-800">${escapeHtml(p.dni)}</div>
+                        <div class="text-slate-500">${escapeHtml(p.codigo_alumno)}</div>
+                    </td>
+                    <td class="px-4 py-3 text-xs">
+                        <div class="font-bold text-navy-900">S/ ${escapeHtml(p.monto_pagar)}</div>
+                        <div class="text-slate-500">${p.es_matriculado ? 'Matriculado' : 'Externo'}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        ${badgePago}
+                        ${p.validado_por ? `<div class="text-[10px] text-slate-400 mt-0.5">por ${escapeHtml(p.validado_por)}</div>` : ''}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        <div class="inline-flex items-center gap-1.5 flex-wrap justify-center">${badgeM} ${badgeT}</div>
+                    </td>
+                    <td class="px-4 py-3 text-right whitespace-nowrap">${acciones}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    window.confirmarPago = async function (id) {
+        try {
+            const res = await fetch(`/api/admin/confirmar-pago/${id}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() },
+            });
+            const data = await res.json();
+            if (res.ok && data.ok) {
+                mostrarToast(data.mensaje, 'success');
+                cargarDashboard();
+            } else {
+                mostrarToast(data.error || 'Error confirmando pago.', 'error');
+            }
+        } catch (err) {
+            mostrarToast('Error de red al confirmar pago.', 'error');
+        }
+    };
+
+    window.anularRegistro = async function (id, dni) {
+        if (!confirm(`¿Está seguro de anular la inscripción del DNI ${dni}? Su QR quedará inválido.`)) return;
+        try {
+            const res = await fetch(`/api/admin/anular-registro/${id}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() },
+            });
+            const data = await res.json();
+            if (res.ok && data.ok) {
+                mostrarToast(data.mensaje, 'info');
+                cargarDashboard();
+            } else {
+                mostrarToast(data.error || 'No se pudo anular.', 'error');
+            }
+        } catch (err) {
+            mostrarToast('Error de red al anular.', 'error');
+        }
+    };
+
+    window.verQr = async function (id) {
+        try {
+            const res = await fetch(`/api/admin/ver-qr/${id}/`);
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+                mostrarToast(data.error || 'No se pudo cargar el QR.', 'error');
+                return;
+            }
+            document.getElementById('modalQrImg').src = data.qr_base64;
+            document.getElementById('modalQrNombre').textContent = data.apellidos_nombres;
+            document.getElementById('modalQrDni').textContent = `DNI: ${data.dni} · Cód: ${data.codigo_alumno}`;
+            document.getElementById('modalQrDownload').href = data.qr_download_url;
+            document.getElementById('modalVerQr').classList.remove('hidden');
+        } catch (err) {
+            mostrarToast('Error al obtener el QR.', 'error');
+        }
+    };
+
+    // Eventos de búsqueda y filtros
+    document.getElementById('inputBuscar').addEventListener('input', (e) => {
+        busqueda = e.target.value.trim();
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(cargarDashboard, 250);
+    });
+
+    document.querySelectorAll('.filtro-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            filtroEstado = btn.dataset.estado;
+            document.querySelectorAll('.filtro-btn').forEach(b => {
+                b.className = 'filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200';
+            });
+            btn.className = 'filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-navy-900 text-white';
+            cargarDashboard();
+        });
+    });
+
+    // Modales
+    document.getElementById('btnCerrarQr').addEventListener('click', () => document.getElementById('modalVerQr').classList.add('hidden'));
+    document.getElementById('btnAbrirPadron').addEventListener('click', () => {
+        document.getElementById('resultadoPadron').classList.add('hidden');
+        document.getElementById('modalPadron').classList.remove('hidden');
+    });
+    document.getElementById('btnCerrarPadron').addEventListener('click', () => document.getElementById('modalPadron').classList.add('hidden'));
+
+    document.getElementById('formPadron').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnSubirPadron');
+        const box = document.getElementById('resultadoPadron');
+        btn.disabled = true;
+        btn.textContent = 'Procesando...';
+        try {
+            const fd = new FormData(e.target);
+            const res = await fetch("{% url 'api_importar_padron' %}", {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCsrfToken() },
+                body: fd,
+            });
+            const data = await res.json();
+            box.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-800', 'border-emerald-200', 'bg-rose-50', 'text-rose-800', 'border-rose-200');
+            if (res.ok && data.ok) {
+                const r = data.resumen;
+                box.classList.add('bg-emerald-50', 'text-emerald-800', 'border-emerald-200');
+                box.textContent = `Importación exitosa: ${r.creados} creados, ${r.actualizados} actualizados, ${r.omitidos} omitidos. Total en padrón: ${data.total_padron}.`;
+                cargarDashboard();
+            } else {
+                box.classList.add('bg-rose-50', 'text-rose-800', 'border-rose-200');
+                box.textContent = data.error || 'Error al importar el archivo.';
+            }
+        } catch (err) {
+            box.classList.remove('hidden');
+            box.classList.add('bg-rose-50', 'text-rose-800', 'border-rose-200');
+            box.textContent = 'Error de conexión al subir el archivo.';
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Importar Padrón';
+        }
+    });
+
+    // Modal Modo Prueba
+    document.getElementById('btnAbrirModoPrueba').addEventListener('click', () => {
+        document.getElementById('alertaModoPrueba').classList.add('hidden');
+        document.getElementById('inputAdminPass').value = '';
+        document.getElementById('modalModoPrueba').classList.remove('hidden');
+    });
+    document.getElementById('btnCerrarModoPrueba').addEventListener('click', () => document.getElementById('modalModoPrueba').classList.add('hidden'));
+
+    document.getElementById('formModoPrueba').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const box = document.getElementById('alertaModoPrueba');
+        try {
+            const res = await fetch("{% url 'api_configurar_modo_prueba' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken(),
+                },
+                body: JSON.stringify({
+                    modo_prueba_activo: document.getElementById('chkModoPrueba').checked,
+                    turno_simulado: document.getElementById('selectTurnoSimulado').value,
+                    password: document.getElementById('inputAdminPass').value,
+                }),
+            });
+            const data = await res.json();
+            box.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-800', 'border-emerald-200', 'bg-rose-50', 'text-rose-800', 'border-rose-200');
+            if (res.ok && data.ok) {
+                box.classList.add('bg-emerald-50', 'text-emerald-800', 'border-emerald-200');
+                box.textContent = data.mensaje;
+                cargarDashboard();
+                setTimeout(() => document.getElementById('modalModoPrueba').classList.add('hidden'), 1200);
+            } else {
+                box.classList.add('bg-rose-50', 'text-rose-800', 'border-rose-200');
+                box.textContent = data.error || 'No se pudo actualizar.';
+            }
+        } catch (err) {
+            box.classList.remove('hidden');
+            box.classList.add('bg-rose-50', 'text-rose-800', 'border-rose-200');
+            box.textContent = 'Error de conexión.';
+        }
+    });
+
+    // Carga inicial + auto-refresco cada 5 segundos
+    cargarDashboard();
+    setInterval(cargarDashboard, 5000);
+})();
+</script>
+{% endblock %}
