@@ -1,0 +1,704 @@
+[
+  {
+    "apellidos_nombres": "VÁSQUEZ CHÁVEZ SERGIO ARTURO",
+    "dni": "61467398",
+    "codigo_alumno": "2026100079",
+    "qr_uuid": "ab07dbaf-a49d-46b2-8a82-31ae8c64c235"
+  },
+  {
+    "apellidos_nombres": "TUCTO ORDÓÑEZ FRAN EMMANUEL",
+    "dni": "75523000",
+    "codigo_alumno": "2026210964",
+    "qr_uuid": "bce08d35-cc54-4f14-b36c-ab984de3c862"
+  },
+  {
+    "apellidos_nombres": "AZUMI HADE CRISTÓBAL ACOSTA",
+    "dni": "63119304",
+    "codigo_alumno": "2026210151",
+    "qr_uuid": "4009be1a-4e8c-4b1b-abe9-fbc656469574"
+  },
+  {
+    "apellidos_nombres": "RUTH ANGELA SOTO TUCTO",
+    "dni": "60097556",
+    "codigo_alumno": "2026260018",
+    "qr_uuid": "2de878e0-ba3a-4975-a623-52ac7f7f02ad"
+  },
+  {
+    "apellidos_nombres": "SAMIR ARON NAUTO ROMERO",
+    "dni": "61463142",
+    "codigo_alumno": "2026210164",
+    "qr_uuid": "e11b3150-f04e-45dd-8c1e-3efd79a2644a"
+  },
+  {
+    "apellidos_nombres": "RODRIGUEZ HUAMAN KENSHY YOE",
+    "dni": "48421554",
+    "codigo_alumno": "2026210159",
+    "qr_uuid": "8a91cdd2-d526-415e-bc41-81c1f2fd1658"
+  },
+  {
+    "apellidos_nombres": "FLORES FABIAN AKEMI",
+    "dni": "61445597",
+    "codigo_alumno": "2026260017",
+    "qr_uuid": "bf435ea8-0ad6-4884-904c-bd168c33b30a"
+  },
+  {
+    "apellidos_nombres": "PÉREZ ESPINOZA TAYRA",
+    "dni": "61360253",
+    "codigo_alumno": "2026260019",
+    "qr_uuid": "f44bd668-96f9-4cd5-bf2b-680a1d74cda1"
+  },
+  {
+    "apellidos_nombres": "SARAVIA LEON, WILLIAM ANTONIO",
+    "dni": "75518875",
+    "codigo_alumno": "2022110540",
+    "qr_uuid": "e39d0c79-00c4-45d9-82e1-85c30b89f9e2"
+  },
+  {
+    "apellidos_nombres": "HERRERA URSUA LINDA",
+    "dni": "60737675",
+    "codigo_alumno": "202413007",
+    "qr_uuid": "592f06b7-e789-4ce1-b5ec-bd71683f2539"
+  },
+  {
+    "apellidos_nombres": "ALVAN ROJAS PEDRO ALONSO",
+    "dni": "71436894",
+    "codigo_alumno": "2024110746",
+    "qr_uuid": "f27c8753-aa1e-4a7e-b4ba-f6b3e59fe1fc"
+  },
+  {
+    "apellidos_nombres": "PINEDA CÓRDOBA ANGEL",
+    "dni": "74139321",
+    "codigo_alumno": "2021210325",
+    "qr_uuid": "ffb9fdc7-383b-4038-9b23-69b13ee011ff"
+  },
+  {
+    "apellidos_nombres": "CRUZ RICRA ARNOLD JAVIER",
+    "dni": "71021828",
+    "codigo_alumno": "2025110375",
+    "qr_uuid": "ab938640-2af6-48ed-be69-13bf26291456"
+  },
+  {
+    "apellidos_nombres": "INGA MUNOZ ALANIS",
+    "dni": "76964780",
+    "codigo_alumno": "2024110780",
+    "qr_uuid": "7a01ccc7-8571-477e-a6b8-cbe5bdb4cab7"
+  },
+  {
+    "apellidos_nombres": "LÓPEZ CASTILLO JEAN ANDRÉS",
+    "dni": "72759587",
+    "codigo_alumno": "2022160049",
+    "qr_uuid": "bd2238d7-6015-436f-8246-8d18bdef368b"
+  },
+  {
+    "apellidos_nombres": "CALDAS SIFUENTES RAUL",
+    "dni": "72262823",
+    "codigo_alumno": "2022202210",
+    "qr_uuid": "11ff22a7-0dd7-47b9-bc9a-d0a5f3583de4"
+  },
+  {
+    "apellidos_nombres": "URETA SOTO VÍCTOR FERNANDO",
+    "dni": "72879300",
+    "codigo_alumno": "2024110709",
+    "qr_uuid": "f958fb17-3951-4eaf-856b-1f45b7bb0994"
+  },
+  {
+    "apellidos_nombres": "MALLQUI DOROTEO JOHN ERICK",
+    "dni": "60318977",
+    "codigo_alumno": "2026210966",
+    "qr_uuid": "73999a3e-ef81-4e7f-ab80-cd19c7ca3085"
+  },
+  {
+    "apellidos_nombres": "ZEGARRA PIMENTEL JHONNY CHRISTIAN",
+    "dni": "72795716",
+    "codigo_alumno": "2021210353",
+    "qr_uuid": "db403e3b-2666-40e6-a7e7-7d1f0b54d671"
+  },
+  {
+    "apellidos_nombres": "JUNIOR DANIEL CALDERÓN RAFAEL",
+    "dni": "61126885",
+    "codigo_alumno": "2026110424",
+    "qr_uuid": "c54276b2-3c57-4a60-a4e3-8af22a843aab"
+  },
+  {
+    "apellidos_nombres": "ARMILHUAY CHÁVEZ JOSUE GOMER",
+    "dni": "75233386",
+    "codigo_alumno": "2025160053",
+    "qr_uuid": "8d534647-cc1e-4665-b8a5-228ff845f47a"
+  },
+  {
+    "apellidos_nombres": "ALCEDO AVILA WINSTLER ADMER",
+    "dni": "71541013",
+    "codigo_alumno": "2023110515",
+    "qr_uuid": "6d7c3298-33f7-41c4-a11f-a106e3fa9346"
+  },
+  {
+    "apellidos_nombres": "CARRERA MEDINA EINER ABEISER",
+    "dni": "61280356",
+    "codigo_alumno": "2026260016",
+    "qr_uuid": "48c335ec-95c7-4da2-ad11-e8bbb0a07c55"
+  },
+  {
+    "apellidos_nombres": "SUAREZ RAMOS SAMUEL",
+    "dni": "61445921",
+    "codigo_alumno": "2026210153",
+    "qr_uuid": "b4dfc9ad-9650-4059-bf30-ed9f45dc6c91"
+  },
+  {
+    "apellidos_nombres": "JOB PORTILLO SOLANO",
+    "dni": "60219483",
+    "codigo_alumno": "2024110732",
+    "qr_uuid": "a236281b-0795-4bb8-b159-5d808ded9492"
+  },
+  {
+    "apellidos_nombres": "EDUARDO CESAR TRAVESAÑO VALLE",
+    "dni": "73225522",
+    "codigo_alumno": "2020210320",
+    "qr_uuid": "69c4b6ee-6a01-49ae-8a31-e28f5c3eb21d"
+  },
+  {
+    "apellidos_nombres": "ESTEBAN SHUPINGAHUA ARCE ARTURO",
+    "dni": "60438926",
+    "codigo_alumno": "2026160181",
+    "qr_uuid": "c858297b-5518-4ea2-9411-975615f391be"
+  },
+  {
+    "apellidos_nombres": "FLORES ZEVALLOS CESAR AUGUSTO",
+    "dni": "61289397",
+    "codigo_alumno": "2025100063",
+    "qr_uuid": "a29c6065-b5b2-4ae7-97cd-001bb9adf7c4"
+  },
+  {
+    "apellidos_nombres": "VARGAS MUÑOZ ELISON",
+    "dni": "75922190",
+    "codigo_alumno": "2022110495",
+    "qr_uuid": "2046a866-1506-4288-b48b-2d2242a6ffbb"
+  },
+  {
+    "apellidos_nombres": "CUELLAR SOLORZANO LUIS STEVEN",
+    "dni": "60409925",
+    "codigo_alumno": "2022110528",
+    "qr_uuid": "94b9134c-3c25-4506-8001-49a83a46ec30"
+  },
+  {
+    "apellidos_nombres": "VERDE INOCENCIO STIBHEN JHERARK",
+    "dni": "60009618",
+    "codigo_alumno": "2022110592",
+    "qr_uuid": "ea293617-5457-4f7d-8e95-88af83dd3e2d"
+  },
+  {
+    "apellidos_nombres": "CENEPO INOCENTE MARCOS",
+    "dni": "74945494",
+    "codigo_alumno": "2026160041",
+    "qr_uuid": "5375e0ff-e00c-44d5-adbe-a91fc1160190"
+  },
+  {
+    "apellidos_nombres": "NAZAR RIVERA ZAYUMI MARICRUZ",
+    "dni": "61329522",
+    "codigo_alumno": "2026160048",
+    "qr_uuid": "3867df66-1a83-48e7-b921-a1e708b49f7f"
+  },
+  {
+    "apellidos_nombres": "RAFAEL RAMÓN HELI HIDETOSHI",
+    "dni": "75165019",
+    "codigo_alumno": "2022110583",
+    "qr_uuid": "37f28607-d0be-4cd1-a98c-7f8d0554a6c8"
+  },
+  {
+    "apellidos_nombres": "HURTADO MEDINA NAUN",
+    "dni": "60003573",
+    "codigo_alumno": "2024110738",
+    "qr_uuid": "1ac0c49b-80dc-4957-9248-d70c47b6f4ed"
+  },
+  {
+    "apellidos_nombres": "TRUJILLO PAUCAR LUIS",
+    "dni": "75498317",
+    "codigo_alumno": "2023110510",
+    "qr_uuid": "dd47c2a7-3875-494f-a93a-b3326c5e26aa"
+  },
+  {
+    "apellidos_nombres": "VALLEJOS MALPARTIDA ZAHIR",
+    "dni": "72317519",
+    "codigo_alumno": "2023210212",
+    "qr_uuid": "cfc11e40-ff46-4bfd-b798-86adc070fb33"
+  },
+  {
+    "apellidos_nombres": "MARIAJOSE ANGÉLICA GÓMEZ PARDO",
+    "dni": "73469369",
+    "codigo_alumno": "2023110507",
+    "qr_uuid": "c790c3c4-510c-4afe-8543-2f95de65e172"
+  },
+  {
+    "apellidos_nombres": "AROSEMENA VASQUEZ GIAN CARLOS",
+    "dni": "60003729",
+    "codigo_alumno": "2025160050",
+    "qr_uuid": "3d105929-2fa8-4717-beb7-41b1e38cd64a"
+  },
+  {
+    "apellidos_nombres": "CASTILLO MARGARIN YOY HANS",
+    "dni": "61431459",
+    "codigo_alumno": "2026160043",
+    "qr_uuid": "7a032e4d-ec31-4682-8332-eac640b85973"
+  },
+  {
+    "apellidos_nombres": "BARRETO SAYES",
+    "dni": "61017141",
+    "codigo_alumno": "2026260020",
+    "qr_uuid": "7eb45076-3728-48f3-b374-04d98322f37f"
+  },
+  {
+    "apellidos_nombres": "ALBORNOZ ECHEVARRIA SELIM",
+    "dni": "71539224",
+    "codigo_alumno": "2024110774",
+    "qr_uuid": "5ea16feb-ec82-4459-8841-43249accfb84"
+  },
+  {
+    "apellidos_nombres": "OLIVER AYALA CHÁVEZ",
+    "dni": "46307662",
+    "codigo_alumno": "2024260045",
+    "qr_uuid": "73df4111-4167-4979-b87d-8fa75cbf43e4"
+  },
+  {
+    "apellidos_nombres": "DARWIN CHARLES ALVINO FALCON",
+    "dni": "75347530",
+    "codigo_alumno": "2023110531",
+    "qr_uuid": "1e409565-b290-4270-98a9-bbf921102383"
+  },
+  {
+    "apellidos_nombres": "DAVID JOSUE OSORIO RETIZ",
+    "dni": "60409265",
+    "codigo_alumno": "2023210223",
+    "qr_uuid": "27a47612-1e85-4701-b2d8-f3184c1ff07b"
+  },
+  {
+    "apellidos_nombres": "CARDENAS LÓPEZ ALEXIS",
+    "dni": "76390136",
+    "codigo_alumno": "2022110559",
+    "qr_uuid": "2232ede2-5566-4230-b909-96aa7de84fc1"
+  },
+  {
+    "apellidos_nombres": "KLEYVIN ADIEL RÍOS SALDAÑA",
+    "dni": "75091246",
+    "codigo_alumno": "2021210345",
+    "qr_uuid": "a8c9966c-6b1e-451b-95da-2ee3ad5bdfab"
+  },
+  {
+    "apellidos_nombres": "GÁLVEZ ANDREO JHERSON JOSÉ",
+    "dni": "76686913",
+    "codigo_alumno": "2017110746",
+    "qr_uuid": "5beeb893-473d-4d48-ba36-24c638f14552"
+  },
+  {
+    "apellidos_nombres": "BRICEÑO CONTRERAS SIDANNE LUIS",
+    "dni": "75186833",
+    "codigo_alumno": "",
+    "qr_uuid": "4081a1be-e759-45d7-8d3b-09ce3df0e4df"
+  },
+  {
+    "apellidos_nombres": "ROBLADILLO ROMERO ALEXANDRA MARILYN",
+    "dni": "60634799",
+    "codigo_alumno": "2023210240",
+    "qr_uuid": "535b6b4e-8bc0-4623-8d03-f4e84aa53530"
+  },
+  {
+    "apellidos_nombres": "GAYOSO REMIGIO FREDDY SEBASTIAN",
+    "dni": "60869391",
+    "codigo_alumno": "2024110778",
+    "qr_uuid": "c73c6f73-49d0-4760-83c3-d50e07e081fc"
+  },
+  {
+    "apellidos_nombres": "CORDOVA ANGULO ANGIE NICOLE",
+    "dni": "72660837",
+    "codigo_alumno": "2020210346",
+    "qr_uuid": "623791f4-532e-43e8-acdf-f47806dd7a32"
+  },
+  {
+    "apellidos_nombres": "ATENCIA PONCE BENIGNO FRANKLIN",
+    "dni": "72137429",
+    "codigo_alumno": "2023110516",
+    "qr_uuid": "43e30bd4-901f-4de6-8600-54d0ca9edae6"
+  },
+  {
+    "apellidos_nombres": "MORALES MARTÍN EDUARDO ANDRÉS",
+    "dni": "73189147",
+    "codigo_alumno": "2022110576",
+    "qr_uuid": "25afda00-fc43-45e9-9832-246c601eb45e"
+  },
+  {
+    "apellidos_nombres": "RENGIFO CÍVICO HOMER ROLAND",
+    "dni": "72738014",
+    "codigo_alumno": "2022160043",
+    "qr_uuid": "20496067-21d6-43c1-adb1-320f611c8812"
+  },
+  {
+    "apellidos_nombres": "FIGUEROA NOBLEJAS ÁLVARO",
+    "dni": "72876953",
+    "codigo_alumno": "2023110591",
+    "qr_uuid": "fd5ddd9a-e94f-4d47-9a39-db2c6101109e"
+  },
+  {
+    "apellidos_nombres": "JAMIL OMAR ROJAS PUENTE",
+    "dni": "71610801",
+    "codigo_alumno": "2023210211",
+    "qr_uuid": "a79c7912-c4a5-4c56-81b4-f03c6dfe2ccb"
+  },
+  {
+    "apellidos_nombres": "GONZALES ORDOÑES MIRELLA",
+    "dni": "60821941",
+    "codigo_alumno": "2024160056",
+    "qr_uuid": "0fcfcd7d-fa31-407e-bfc0-bb905c5d52cc"
+  },
+  {
+    "apellidos_nombres": "TORRES DOMINGUEZ LESLY",
+    "dni": "76422712",
+    "codigo_alumno": "2022220245",
+    "qr_uuid": "868e9e90-721a-4ab7-a5b6-ffa259033758"
+  },
+  {
+    "apellidos_nombres": "MONTEJO SÁNCHEZ JOHAN NESTOR",
+    "dni": "71893303",
+    "codigo_alumno": "2022110505",
+    "qr_uuid": "3821b945-8097-4fef-bdac-99639750295c"
+  },
+  {
+    "apellidos_nombres": "ESPINOZA DELGADO MARCO NICCOLO",
+    "dni": "72103838",
+    "codigo_alumno": "2022110518",
+    "qr_uuid": "a936bd0c-2393-4dd6-ae94-630d360f3d86"
+  },
+  {
+    "apellidos_nombres": "CUEVA SANTA MARÍA LEITO",
+    "dni": "75059179",
+    "codigo_alumno": "2022110544",
+    "qr_uuid": "51d85412-bb2f-47ec-a6dc-fcddc60af2e6"
+  },
+  {
+    "apellidos_nombres": "HARI VARGAS OSCATEGUI",
+    "dni": "60460828",
+    "codigo_alumno": "2024110762",
+    "qr_uuid": "0f2df61a-0041-4db4-ba32-20c1cb2bcafa"
+  },
+  {
+    "apellidos_nombres": "ROMARIO ESLAVA RIVERA",
+    "dni": "71109671",
+    "codigo_alumno": "2012111767",
+    "qr_uuid": "d2701467-54f5-49d2-97a2-5c2b33fbe09e"
+  },
+  {
+    "apellidos_nombres": "PARINANGO NAVARRO DANNY",
+    "dni": "61928283",
+    "codigo_alumno": "2024110751",
+    "qr_uuid": "369a2392-3ffc-48a2-ab0b-c5cc55e7f624"
+  },
+  {
+    "apellidos_nombres": "BAYLON CASTRO MANUEL",
+    "dni": "61020401",
+    "codigo_alumno": "2024100040",
+    "qr_uuid": "5b991fea-6254-491b-ad61-0dbf150e2abb"
+  },
+  {
+    "apellidos_nombres": "ALBORNOZ VALDIVIA, ANDREÉ DARIO",
+    "dni": "60095904",
+    "codigo_alumno": "2023110588",
+    "qr_uuid": "28157d9f-81f6-4ad7-9ace-f7cafce1a259"
+  },
+  {
+    "apellidos_nombres": "PAUCARCHUCO ESPINOZA EDUARDO JOSÉ",
+    "dni": "71399074",
+    "codigo_alumno": "2022110581",
+    "qr_uuid": "4ebc9d68-ebb8-4726-ba58-fb2f03b2c429"
+  },
+  {
+    "apellidos_nombres": "ROBERTO CARLOS POMA SÁNCHEZ",
+    "dni": "73106805",
+    "codigo_alumno": "2022110582",
+    "qr_uuid": "c4671cbc-c891-4607-ba33-ebff3a20808e"
+  },
+  {
+    "apellidos_nombres": "CEFERINO OLORTIN LEONARDO JAREN",
+    "dni": "62054713",
+    "codigo_alumno": "2022110517",
+    "qr_uuid": "862ec752-820b-4998-b1f2-016a570f379b"
+  },
+  {
+    "apellidos_nombres": "ACOSTA RIVERA, HUR",
+    "dni": "75673015",
+    "codigo_alumno": "2022110534",
+    "qr_uuid": "db8dfc2e-b85e-437b-ba83-89a528cbc929"
+  },
+  {
+    "apellidos_nombres": "ACOSTA FALCÓN, MARCO ANTONIO",
+    "dni": "71652255",
+    "codigo_alumno": "2023110559",
+    "qr_uuid": "f4fc1e85-a05d-416c-a097-b0416277d6b0"
+  },
+  {
+    "apellidos_nombres": "PORTILLO MORY VALENTINO FABIO",
+    "dni": "61289128",
+    "codigo_alumno": "2026110414",
+    "qr_uuid": "9e310e2f-6282-4a2a-a75f-e330ee1699ee"
+  },
+  {
+    "apellidos_nombres": "MARIO MIGUEL SALCEDO MINAYA",
+    "dni": "70853207",
+    "codigo_alumno": "2023110584",
+    "qr_uuid": "989e9a8e-2663-4307-a190-75e02ee2c52c"
+  },
+  {
+    "apellidos_nombres": "ROJAS JAIME JAIRO",
+    "dni": "60737419",
+    "codigo_alumno": "2024210181",
+    "qr_uuid": "77eca080-d8b7-4534-a590-f866db6ffca8"
+  },
+  {
+    "apellidos_nombres": "AYALA GAVINO ZINEDINE",
+    "dni": "71387768",
+    "codigo_alumno": "2019210128",
+    "qr_uuid": "ccf2174d-5c36-4ecd-a9c6-83e3b9b70530"
+  },
+  {
+    "apellidos_nombres": "MARCEL ALEXANDER JAVIER TRUJILLO AVILA",
+    "dni": "72886826",
+    "codigo_alumno": "2022110485",
+    "qr_uuid": "cd469d6c-c4e2-4d01-8112-191b32c788a5"
+  },
+  {
+    "apellidos_nombres": "BARRUETA MARCELLINI CESAR",
+    "dni": "73650582",
+    "codigo_alumno": "2022110523",
+    "qr_uuid": "592b1318-d6e5-4006-9fbb-b7adc5d97855"
+  },
+  {
+    "apellidos_nombres": "CARLOS ANTONIO JANAMPA ESTEBAN",
+    "dni": "71314582",
+    "codigo_alumno": "2022110537",
+    "qr_uuid": "745870d3-ddac-4a77-b2f0-fb2d9e9ab47c"
+  },
+  {
+    "apellidos_nombres": "ANTONIO NINO ESTEFANO SAUL",
+    "dni": "73587036",
+    "codigo_alumno": "2023210204",
+    "qr_uuid": "70f69be2-d9ec-453d-9d5d-c092451fbafe"
+  },
+  {
+    "apellidos_nombres": "CORNELIO PUENTE ANDONI",
+    "dni": "71604611",
+    "codigo_alumno": "2022210265",
+    "qr_uuid": "70a9d1d0-0444-401b-bb05-f5fea42a1872"
+  },
+  {
+    "apellidos_nombres": "ESPINOZA TORIBIO JHON DALTON",
+    "dni": "71875101",
+    "codigo_alumno": "2024110721",
+    "qr_uuid": "8abed2f2-b325-49af-9754-ee379d09b1bc"
+  },
+  {
+    "apellidos_nombres": "RICARDO ARTURO ALVARADO CUEVA",
+    "dni": "76516579",
+    "codigo_alumno": "2021210309",
+    "qr_uuid": "b284f52c-5de9-4502-9531-b2289ebffe77"
+  },
+  {
+    "apellidos_nombres": "CARBAJAL ESPINOZA MILTON AARON",
+    "dni": "72139368",
+    "codigo_alumno": "2023110511",
+    "qr_uuid": "9be65576-4f49-474e-9fe0-3877fff85a22"
+  },
+  {
+    "apellidos_nombres": "VALLES SOLÓRZANO ENRIQUE GONZALO",
+    "dni": "71628915",
+    "codigo_alumno": "2023110549",
+    "qr_uuid": "0e8a0306-665d-4de5-a8ce-81a6e0777b41"
+  },
+  {
+    "apellidos_nombres": "CARLOS EDUARDO TORRES AYALA",
+    "dni": "72945410",
+    "codigo_alumno": "2022110522",
+    "qr_uuid": "eeef7171-dbb1-41c9-9391-0f77ab441f2c"
+  },
+  {
+    "apellidos_nombres": "SANGAMA DAVALOS JHEISON",
+    "dni": "71475286",
+    "codigo_alumno": "2023110585",
+    "qr_uuid": "749be597-4875-4c62-a6de-99ce45865da6"
+  },
+  {
+    "apellidos_nombres": "ATACHAO NATIVIDAD DIOMER LUIS",
+    "dni": "72326985",
+    "codigo_alumno": "2021110361",
+    "qr_uuid": "46a71bc1-9aa2-43be-935f-00f7cc1da4e5"
+  },
+  {
+    "apellidos_nombres": "NARCIZO PALOMINO ARTURO",
+    "dni": "74659976",
+    "codigo_alumno": "2023110538",
+    "qr_uuid": "b41d64fe-c87f-497c-ae87-6417982a8477"
+  },
+  {
+    "apellidos_nombres": "RIVERA SOTO GERMAN",
+    "dni": "75020590",
+    "codigo_alumno": "2023210215",
+    "qr_uuid": "79eb6e16-4a8c-4d74-b699-bd965a5f6a5d"
+  },
+  {
+    "apellidos_nombres": "ARRATEA BERNARDO RICHARD",
+    "dni": "76621523",
+    "codigo_alumno": "2022210259",
+    "qr_uuid": "2b44cf89-339b-4156-b5c0-0282e0f0fd00"
+  },
+  {
+    "apellidos_nombres": "MALLQUI PAREDES RONALDHO DANTE",
+    "dni": "73367031",
+    "codigo_alumno": "2023110566",
+    "qr_uuid": "540d2c70-3a70-4ca0-b126-6076cac3418d"
+  },
+  {
+    "apellidos_nombres": "SOTO MAYOR LUCAS BRADDLY",
+    "dni": "73298344",
+    "codigo_alumno": "2021210338",
+    "qr_uuid": "5a1ed98e-9669-4085-9346-bdecc5fecb2f"
+  },
+  {
+    "apellidos_nombres": "MARTEL ÁLVAREZ MARCO KLEIN",
+    "dni": "73021685",
+    "codigo_alumno": "2022210240",
+    "qr_uuid": "43c66c9d-c7ab-466d-92a7-00d36765c50e"
+  },
+  {
+    "apellidos_nombres": "AIRA ESPINOZA KEVIN",
+    "dni": "72787317",
+    "codigo_alumno": "2022210254",
+    "qr_uuid": "c09d3501-7854-465d-8d36-3aaa8a8c7620"
+  },
+  {
+    "apellidos_nombres": "SAUL ANGEL ESCANDON MUNGUIA",
+    "dni": "48315690",
+    "codigo_alumno": "DOCENTE",
+    "qr_uuid": "b61ba780-eb21-4ef5-a0ae-e501f13335b5"
+  },
+  {
+    "apellidos_nombres": "SEGOBIA ANDRES JOSE LUIS",
+    "dni": "73587159",
+    "codigo_alumno": "2023110548",
+    "qr_uuid": "4ea4b876-4fdd-4c20-aedb-71cdea1a5f65"
+  },
+  {
+    "apellidos_nombres": "MILENI BERLITH PONCE OCAÑA",
+    "dni": "60598446",
+    "codigo_alumno": "2026160051",
+    "qr_uuid": "99e3fb4a-1852-48a3-8779-1d8863289ca2"
+  },
+  {
+    "apellidos_nombres": "JAZMÍN BRIGITH TRUJILLO FELIX",
+    "dni": "60633275",
+    "codigo_alumno": "2026130013",
+    "qr_uuid": "689f967d-7b4a-40df-ba41-e0ef1336e0cb"
+  },
+  {
+    "apellidos_nombres": "ANGHELA MARISOL CAMARENA ROSAS",
+    "dni": "72838077",
+    "codigo_alumno": "2022210262",
+    "qr_uuid": "6592c7c9-09cb-4b82-8ba3-47308c4332af"
+  },
+  {
+    "apellidos_nombres": "FABIO RODRIGUEZ MELENDEZ",
+    "dni": "60737289",
+    "codigo_alumno": "2023110576",
+    "qr_uuid": "ed431347-5e2d-4f22-8fb0-9c488d024518"
+  },
+  {
+    "apellidos_nombres": "JESUS JANS AYALA LAZARO",
+    "dni": "73428011",
+    "codigo_alumno": "2023110533",
+    "qr_uuid": "73afeefa-68ab-4ac1-862f-bd7b133d3f55"
+  },
+  {
+    "apellidos_nombres": "JUAN JOSE FERNÁNDEZ RAMOS",
+    "dni": "75560857",
+    "codigo_alumno": "2021210313",
+    "qr_uuid": "b229ecf4-574a-4298-9c0b-d61fa54b7785"
+  },
+  {
+    "apellidos_nombres": "YAMILETT DANIELA FLORES RESPALDIZA",
+    "dni": "71983732",
+    "codigo_alumno": "2022210235",
+    "qr_uuid": "2ce34df4-290b-4945-8cca-2eccacf3ecfe"
+  },
+  {
+    "apellidos_nombres": "DUEÑAS HERRADA ALEXANDER",
+    "dni": "75950932",
+    "codigo_alumno": "2022210233",
+    "qr_uuid": "91da5417-b4d0-49a5-955c-a1bee474a695"
+  },
+  {
+    "apellidos_nombres": "VARGAS ATACHAGUA JHEAN POOL",
+    "dni": "60720791",
+    "codigo_alumno": "2022110511",
+    "qr_uuid": "b47201d7-09c4-4048-9ff0-4003ad550fb4"
+  },
+  {
+    "apellidos_nombres": "TUCTO LUNA KENNY",
+    "dni": "76734066",
+    "codigo_alumno": "2022210277",
+    "qr_uuid": "9054e320-a972-45ab-b248-0edbd799a0ea"
+  },
+  {
+    "apellidos_nombres": "DANNIELS RAFAEL MARTEL NEIRA",
+    "dni": "72211750",
+    "codigo_alumno": "2022210227",
+    "qr_uuid": "7e7a2e25-88db-4f32-b60c-d32e80f745c4"
+  },
+  {
+    "apellidos_nombres": "JEFFERSON MENLI PALACIOS PRESENTACION",
+    "dni": "74791839",
+    "codigo_alumno": "2022210219",
+    "qr_uuid": "1ba9d7bc-4792-4b07-9035-8b59064d4889"
+  },
+  {
+    "apellidos_nombres": "JEFRI BERNARDO LAMA",
+    "dni": "60095931",
+    "codigo_alumno": "202311560",
+    "qr_uuid": "a8e8c080-f734-49e1-b3bf-1c8bf5023bf0"
+  },
+  {
+    "apellidos_nombres": "ERICK ITALO CULANTRES ASTUQUIPAN",
+    "dni": "61253966",
+    "codigo_alumno": "2025100071",
+    "qr_uuid": "911860a7-6aab-4b3d-a257-88664f2c6e98"
+  },
+  {
+    "apellidos_nombres": "CESAR ALBERTO BARRAGAN CERDAN",
+    "dni": "76249531",
+    "codigo_alumno": "2015100261",
+    "qr_uuid": "07ee20a5-d74b-4c23-b22c-9ad62eb7f2aa"
+  },
+  {
+    "apellidos_nombres": "MENDOZA VILLANUEVA MAYRA MIRIAM",
+    "dni": "61232115",
+    "codigo_alumno": "2022110575",
+    "qr_uuid": "9246128e-adc3-495e-9fdd-3d3df9e9c6ee"
+  },
+  {
+    "apellidos_nombres": "LEONARDO NATIVIDAD MURILLO",
+    "dni": "73211659",
+    "codigo_alumno": "2018112189",
+    "qr_uuid": "5aaf7fdf-3981-4366-82b1-b74399562a7d"
+  },
+  {
+    "apellidos_nombres": "DIACK KENNEDY VALDIZAN ARCE",
+    "dni": "70249707",
+    "codigo_alumno": "2021210347",
+    "qr_uuid": "ce08a1ff-78d3-4b8c-a747-6f934cc763cb"
+  },
+  {
+    "apellidos_nombres": "ALEJANDRO ADRIANZEN MANUEL ALEJANDRO",
+    "dni": "75103812",
+    "codigo_alumno": "2023111066",
+    "qr_uuid": "a51d939e-a8cb-4f4a-8499-a8330d367add"
+  },
+  {
+    "apellidos_nombres": "ORLANDO BRYAM NALVARTE MANZANO",
+    "dni": "72513195",
+    "codigo_alumno": "2021210324",
+    "qr_uuid": "46dbc5b4-c167-49ee-bd01-be599b0cb96d"
+  }
+]

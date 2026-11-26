@@ -38,19 +38,24 @@ def _qr_signing_key() -> bytes:
     return hashlib.sha256(secret).digest()
 
 
-def generar_token_qr() -> tuple[uuid.UUID, str]:
-    """
-    Genera un UUIDv4 no enumerable y lo firma criptográficamente con HMAC-SHA256.
-    Formato: CUNV1.<uuid4_hex>.<hmac_32_hex>
-    """
-    uid = uuid.uuid4()
+def firmar_uuid_qr(uid: uuid.UUID) -> str:
+    """Firma un UUIDv4 existente con HMAC-SHA256 en formato CUNV1.<uuid4_hex>.<hmac_32_hex>."""
     payload = f"{QR_TOKEN_PREFIX}.{uid.hex}"
     signature = hmac.new(
         _qr_signing_key(),
         payload.encode("utf-8"),
         hashlib.sha256,
     ).hexdigest()[:32]
-    return uid, f"{payload}.{signature}"
+    return f"{payload}.{signature}"
+
+
+def generar_token_qr() -> tuple[uuid.UUID, str]:
+    """
+    Genera un UUIDv4 no enumerable y lo firma criptográficamente con HMAC-SHA256.
+    Formato: CUNV1.<uuid4_hex>.<hmac_32_hex>
+    """
+    uid = uuid.uuid4()
+    return uid, firmar_uuid_qr(uid)
 
 
 def verificar_firma_token_qr(token: str) -> tuple[bool, str | None]:

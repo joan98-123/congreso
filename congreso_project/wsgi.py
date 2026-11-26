@@ -24,6 +24,7 @@ if os.environ.get("VERCEL"):
                 email=admin_email,
                 password=admin_pass,
             )
+        call_command("cargar_participantes_iniciales", verbosity=0)
 
 # Vercel Python Runtime busca el objeto WSGI/ASGI llamado `app`
 app = application
