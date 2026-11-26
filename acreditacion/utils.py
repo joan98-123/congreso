@@ -704,9 +704,10 @@ def sincronizar_desde_google_sheet(force: bool = False) -> dict:
     creados = 0
     actualizados = 0
     excluidos_externos = 0
+    excluidos_docentes = 0
     omitidos_dni = 0
     faltan_cancelar = []
-    dnis_faltan_cancelar = set()
+    dnis_excluidos = set()
     ahora_dt = timezone.now()
 
     with transaction.atomic():
@@ -731,8 +732,16 @@ def sincronizar_desde_google_sheet(force: bool = False) -> dict:
             if not nombre and not dni:
                 continue
 
-            if "INVITADO EXTERNO" in codigo:
+            if "EXTERNO" in codigo or "EXTERNO" in dni.upper():
                 excluidos_externos += 1
+                if re.fullmatch(r"\d{8}", dni):
+                    dnis_excluidos.add(dni)
+                continue
+
+            if "DOCENTE" in codigo or "DOCENTE" in dni.upper():
+                excluidos_docentes += 1
+                if re.fullmatch(r"\d{8}", dni):
+                    dnis_excluidos.add(dni)
                 continue
 
             # Detectar si tiene observación de "falta cancelar" / "falta pagar" / "pendiente"
@@ -763,7 +772,7 @@ def sincronizar_desde_google_sheet(force: bool = False) -> dict:
                     }
                 )
                 if re.fullmatch(r"\d{8}", dni):
-                    dnis_faltan_cancelar.add(dni)
+                    dnis_excluidos.add(dni)
                 continue
 
             if not re.fullmatch(r"\d{8}", dni):
@@ -806,10 +815,10 @@ def sincronizar_desde_google_sheet(force: bool = False) -> dict:
                 )
                 creados += 1
 
-        # Si alguno marcado como "falta cancelar" estaba activo previamente, desactivarlo hasta que cancele
-        if dnis_faltan_cancelar:
+        # Desactivar registros excluidos (docentes, externos o quienes faltan cancelar)
+        if dnis_excluidos:
             Participante.objects.filter(
-                dni__in=dnis_faltan_cancelar,
+                dni__in=dnis_excluidos,
                 asistencia_manana=False,
                 asistencia_tarde=False,
             ).exclude(estado_pago=Participante.ESTADO_ANULADO).update(
@@ -826,6 +835,7 @@ def sincronizar_desde_google_sheet(force: bool = False) -> dict:
         "creados": creados,
         "actualizados": actualizados,
         "excluidos_externos": excluidos_externos,
+        "excluidos_docentes": excluidos_docentes,
         "omitidos_dni": omitidos_dni,
         "faltan_cancelar": faltan_cancelar,
     }

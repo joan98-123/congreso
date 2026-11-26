@@ -321,7 +321,7 @@ class CongresoSistemaTests(TestCase):
             ",N°,Nombres y Apellidos,DNI,Código de Estudiante,Monto,Método de Pago,,\n"
             ",1,Alumno Nuevo Uno,74561234,2026110001,S/ 60.00,Yape,,\n"
             ",2,Invitado Fuera,74569999,INVITADO EXTERNO,S/ 40.00,Yape,,\n"
-            ",3,Sin Dni Valido,DOCENTE,DOCENTE,S/ 50.00,Efectivo,,\n"
+            ",3,Docente Con Dni,48315690,DOCENTE,S/ 60.00,Efectivo,,\n"
             ",4,Alumno Pendiente,74568888,2026110099,S/ 20.00,Yape,Falta cancelar,\n"
         ).encode("utf-8")
 
@@ -340,7 +340,7 @@ class CongresoSistemaTests(TestCase):
             self.assertTrue(res["ok"])
             self.assertEqual(res["creados"], 1)
             self.assertEqual(res["excluidos_externos"], 1)
-            self.assertEqual(res["omitidos_dni"], 1)
+            self.assertEqual(res["excluidos_docentes"], 1)
             self.assertEqual(len(res["faltan_cancelar"]), 1)
             self.assertEqual(res["faltan_cancelar"][0]["dni"], "74568888")
 
@@ -350,6 +350,7 @@ class CongresoSistemaTests(TestCase):
         self.assertEqual(p.estado_pago, Participante.ESTADO_PAGADO)
         self.assertTrue(verificar_firma_token_qr(p.qr_token)[0])
         self.assertFalse(Participante.objects.filter(dni="74569999").exists())
+        self.assertFalse(Participante.objects.filter(dni="48315690").exists())
         self.assertFalse(Participante.objects.filter(dni="74568888").exists())
 
 
