@@ -26,5 +26,6 @@ urlpatterns = [
     path("api/admin/importar-padron/", views.api_importar_padron, name="api_importar_padron"),
     path("api/admin/sincronizar-sheet/", views.api_sincronizar_sheet, name="api_sincronizar_sheet"),
     path("api/admin/modo-prueba/", views.api_configurar_modo_prueba, name="api_configurar_modo_prueba"),
+    path("api/admin/turno-prueba-rapido/", views.api_cambiar_turno_prueba_rapido, name="api_cambiar_turno_prueba_rapido"),
     path("api/admin/escanear-qr/", views.api_escanear_qr, name="api_escanear_qr"),
 ]
